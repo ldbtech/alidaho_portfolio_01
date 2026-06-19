@@ -4,6 +4,8 @@ import Script from 'next/script';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import DynamicFavicon from './components/DynamicFavicon';
+import ScrollProgress from './components/ScrollProgress';
+import ChatBot from './components/ChatBot';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -38,6 +40,8 @@ export default function RootLayout({ children }) {
         </Script>
       </head>
       <body className={inter.className}>
+        <ScrollProgress />
+        <ChatBot />
         <DynamicFavicon />
         <ThemeProvider>
           <LanguageProvider>

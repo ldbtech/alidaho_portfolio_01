@@ -2,7 +2,7 @@
 import React from "react";
 import NavLink from "./NavLink";
 import { motion } from "framer-motion";
-import { XMarkIcon } from "@heroicons/react/24/solid";
+import { FaTimes } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -33,7 +33,7 @@ const MenuOverlay = ({ links, onClose }) => {
                         onClick={onClose}
                         className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
                     >
-                        <XMarkIcon className="h-5 w-5 text-white" />
+                        <FaTimes className="h-5 w-5 text-white" />
                     </motion.button>
                 </div>
 

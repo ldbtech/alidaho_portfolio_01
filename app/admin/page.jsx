@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaSave, FaTrash, FaPlus, FaEdit, FaLink, FaSignOutAlt, FaProjectDiagram, FaUser, FaInfoCircle, FaLightbulb, FaFilePdf } from "react-icons/fa";
-import { getDatabase, ref, set, remove } from "firebase/database";
+import { FaSave, FaTrash, FaPlus, FaEdit, FaLink, FaSignOutAlt, FaProjectDiagram, FaUser, FaInfoCircle, FaLightbulb, FaFilePdf, FaEye, FaArrowLeft } from "react-icons/fa";
+import { getDatabase, ref, set, remove, get } from "firebase/database";
 import database from "../services/firebase";
-import { fetchData, saveProject, saveAbout, getCurrentUser, logout, initAuthStateListener } from "../services/firebase";
+import { fetchData, saveProject, saveAbout, getCurrentUser, logout, initAuthStateListener, getVisitorCount, getProjectCount } from "../services/firebase";
 import LoginForm from "../components/LoginForm";
 import ProjectManager from '../components/admin/ProjectManager';
 import AboutManager from '../components/admin/AboutManager';
 import ProfileManager from '../components/admin/ProfileManager';
 import ThoughtManager from '../components/admin/ThoughtManager';
 import ResumeManager from '../components/admin/ResumeManager';
+import Link from 'next/link';
+import LoadingState from '../components/LoadingState';
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("projects");
@@ -23,6 +25,11 @@ const AdminPage = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Statistics state
+  const [visitsStat, setVisitsStat] = useState(0);
+  const [projectsStat, setProjectsStat] = useState(0);
+  const [thoughtsStat, setThoughtsStat] = useState(0);
 
   // Load data on component mount
   useEffect(() => {
@@ -64,12 +71,30 @@ const AdminPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchData('projects');
-      if (data) {
-        setProjects(Object.values(data));
+      
+      // Load metrics & data concurrently
+      const [projectsData, aboutData, visitsCount, projectCount] = await Promise.all([
+        fetchData('projects'),
+        fetchData('about'),
+        getVisitorCount(),
+        getProjectCount()
+      ]);
+
+      if (projectsData) {
+        setProjects(Object.values(projectsData));
       }
-      const aboutData = await fetchData('about');
       setAbout(aboutData);
+      setVisitsStat(visitsCount || 0);
+      setProjectsStat(projectCount || 0);
+
+      // Fetch thoughts count
+      if (database) {
+        const thoughtsRef = ref(database, 'thoughts');
+        const thoughtsSnapshot = await get(thoughtsRef);
+        const thoughtsVal = thoughtsSnapshot.val();
+        setThoughtsStat(thoughtsVal ? Object.keys(thoughtsVal).length : 0);
+      }
+
     } catch (error) {
       console.error("Error loading data:", error);
       showError(error.message);
@@ -147,8 +172,8 @@ const AdminPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#121212] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-theme flex items-center justify-center">
+        <LoadingState message="Authorizing & loading admin dashboard..." />
       </div>
     );
   }
@@ -179,56 +204,102 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white p-8">
+    <div className="min-h-screen bg-theme text-primary p-4 sm:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto"
+        className="max-w-7xl mx-auto space-y-8"
       >
         {error && (
-          <div className="mb-4 p-4 bg-red-500/10 border border-red-500 rounded-lg">
-            <p className="text-red-500">{error}</p>
+          <div className="p-4 bg-red-500/10 border border-red-500 rounded-2xl">
+            <p className="text-red-500 text-sm font-medium">{error}</p>
           </div>
         )}
         {success && (
-          <div className="mb-4 p-4 bg-green-500/10 border border-green-500 rounded-lg">
-            <p className="text-green-500">{success}</p>
+          <div className="p-4 bg-green-500/10 border border-green-500 rounded-2xl">
+            <p className="text-green-500 text-sm font-medium">{success}</p>
           </div>
         )}
         
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold">
-            Portfolio <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-500">Admin</span>
-          </h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-[#2A2A2A] rounded-full flex items-center gap-2 hover:bg-[#3A3A3A] transition-all duration-300"
-          >
-            <FaSignOutAlt /> Logout
-          </button>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-separator/20 pb-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              Portfolio <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">Admin</span>
+            </h1>
+            <p className="text-secondary text-xs sm:text-sm mt-1">Manage content, upload resumes, and review statistics.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="px-4 py-2.5 bg-surface-secondary border border-separator/40 hover:border-accent/40 rounded-full flex items-center gap-2 text-sm text-secondary hover:text-primary transition-all duration-300"
+            >
+              <FaArrowLeft className="text-xs" /> View Site
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-full flex items-center gap-2 text-sm transition-all duration-300 font-semibold"
+            >
+              <FaSignOutAlt className="text-xs" /> Logout
+            </button>
+          </div>
         </div>
 
-        <div className="flex space-x-4 mb-8 overflow-x-auto pb-2">
+        {/* Dashboard Overview Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="bg-glass rounded-2xl p-5 border border-separator/35 flex items-center gap-4 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 text-xl">
+              <FaEye />
+            </div>
+            <div>
+              <span className="block text-2xl font-black text-primary">{visitsStat}</span>
+              <span className="text-xs text-secondary font-semibold">Total Profile Visits</span>
+            </div>
+          </div>
+          <div className="bg-glass rounded-2xl p-5 border border-separator/35 flex items-center gap-4 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 text-xl">
+              <FaProjectDiagram />
+            </div>
+            <div>
+              <span className="block text-2xl font-black text-primary">{projectsStat}</span>
+              <span className="text-xs text-secondary font-semibold">Published Projects</span>
+            </div>
+          </div>
+          <div className="bg-glass rounded-2xl p-5 border border-separator/35 flex items-center gap-4 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 text-xl">
+              <FaLightbulb />
+            </div>
+            <div>
+              <span className="block text-2xl font-black text-primary">{thoughtsStat}</span>
+              <span className="text-xs text-secondary font-semibold">Blog Thoughts</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Selection */}
+        <div className="flex space-x-2 border-b border-separator/20 pb-2 overflow-x-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isSelected = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-[#2A2A2A] text-gray-300 hover:bg-[#3A3A3A]'
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 shrink-0 ${
+                  isSelected
+                    ? 'bg-accent text-white shadow-md'
+                    : 'bg-surface-secondary hover:bg-surface-tertiary text-secondary hover:text-primary border border-separator/40'
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="text-sm shrink-0" />
                 <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="bg-[#181818] rounded-lg shadow-lg">
+        {/* Manager Contents */}
+        <div className="bg-glass rounded-3xl p-6 sm:p-8 border border-separator/30 shadow-md">
           {renderContent()}
         </div>
       </motion.div>

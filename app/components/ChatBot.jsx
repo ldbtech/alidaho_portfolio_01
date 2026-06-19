@@ -1,146 +1,313 @@
 'use client';
 
-import React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaRobot, FaTimes, FaPaperPlane, FaWindowMinimize } from 'react-icons/fa';
+import { FaRobot, FaTimes, FaPaperPlane, FaRedo, FaChevronDown, FaComments } from 'react-icons/fa';
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hi! I'm your AI assistant. How can I help you today?",
+      text: "Hi! I'm Ali's AI career assistant. Ask me anything about his technical skills, projects, background, or availability!",
       sender: 'bot'
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFallback, setIsFallback] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const suggestionChips = [
+    { label: "🛠️ Skills", query: "What are Ali's core technical skills?" },
+    { label: "📱 Flikor App", query: "Tell me about the Flikor roommates app" },
+    { label: "⚽ Fun Fact", query: "Tell me a fun fact about Ali" },
+    { label: "✉️ Contact", query: "How can I contact Ali?" }
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isOpen && !isMinimized) {
+      scrollToBottom();
+      // Auto focus on input when opened
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [messages, isOpen, isMinimized]);
+
+  const handleSend = async (text) => {
+    if (!text.trim() || isLoading) return;
+
+    const userMessage = {
+      id: Date.now(),
+      text: text,
+      sender: 'user'
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      
+      if (data.isFallback) {
+        setIsFallback(true);
+      }
+
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        text: data.text,
+        sender: 'bot'
+      }]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        text: "Sorry, I ran into an error connecting to the backend. Please try again later!",
+        sender: 'bot'
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    handleSend(inputMessage);
+  };
 
-    // Add user message
-    const userMessage = {
-      id: messages.length + 1,
-      text: inputMessage,
-      sender: 'user'
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-
-    // Simulate bot response (to be replaced with actual LLM integration)
-    setTimeout(() => {
-      const botMessage = {
-        id: messages.length + 2,
-        text: "I'm still learning! This feature will be available soon with our LLM integration.",
-        sender: 'bot'
-      };
-      setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+  const handleReset = () => {
+    if (window.confirm("Reset conversation history?")) {
+      setMessages([
+        {
+          id: Date.now(),
+          text: "Hi! I'm Ali's AI career assistant. Ask me anything about his technical skills, projects, background, or availability!",
+          sender: 'bot'
+        }
+      ]);
+      setIsFallback(false);
+    }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {/* Chat Button */}
-      <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        className="bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
-        onClick={() => setIsOpen(true)}
-      >
-        <FaRobot className="text-2xl" />
-      </motion.button>
+    <div className="fixed bottom-6 right-6 z-50 font-sans">
+      {/* Floating Chat Button */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0, opacity: 0, y: 20 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-3 px-5 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 border border-blue-400/20"
+            onClick={() => {
+              setIsOpen(true);
+              setIsMinimized(false);
+            }}
+          >
+            <FaComments className="text-xl animate-pulse" />
+            <span className="font-semibold text-sm tracking-wide hidden sm:inline">Ask Ali AI</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Chat Window */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && !isMinimized && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 w-96 h-[600px] bg-[#1A1A1A] rounded-lg shadow-xl flex flex-col border border-gray-800"
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 260, damping: 25 }}
+            className="fixed bottom-6 right-6 w-[calc(100vw-2rem)] sm:w-96 h-[560px] max-h-[85vh] bg-surface-secondary/95 dark:bg-[#0c0c0e]/95 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col border border-separator/40 dark:border-zinc-800/80 overflow-hidden"
           >
             {/* Header */}
-            <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <FaRobot className="text-blue-500 text-xl" />
-                <h3 className="text-white font-semibold">AI Assistant</h3>
+            <div className="px-5 py-4 bg-surface dark:bg-zinc-900/60 border-b border-separator/30 dark:border-zinc-800/50 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
+                  <FaRobot className="text-blue-500 text-base" />
+                </div>
+                <div>
+                  <h3 className="text-primary font-bold text-sm leading-none">Ali's Assistant</h3>
+                  <span className="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase">Active Agent</span>
+                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  onClick={handleReset}
+                  title="Reset conversation"
+                  className="text-zinc-400 hover:text-zinc-200 transition-colors p-1"
                 >
-                  <FaWindowMinimize />
+                  <FaRedo className="text-xs" />
+                </button>
+                <button
+                  onClick={() => setIsMinimized(true)}
+                  title="Minimize chat"
+                  className="text-zinc-400 hover:text-zinc-200 transition-colors p-1"
+                >
+                  <FaChevronDown className="text-sm" />
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  title="Close chat"
+                  className="text-zinc-400 hover:text-zinc-200 transition-colors p-1"
                 >
-                  <FaTimes />
+                  <FaTimes className="text-sm" />
                 </button>
               </div>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Fallback Banner for Owner */}
+            {isFallback && (
+              <div className="px-4 py-2 bg-yellow-500/10 border-b border-yellow-500/20 text-[11px] text-yellow-500/90 leading-tight">
+                💡 Currently running in mock mode. Add your <code>GEMINI_API_KEY</code> on Vercel to activate live Gemini responses.
+              </div>
+            )}
+
+            {/* Message Area */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-zinc-800">
               {messages.map((message) => (
-                <motion.div
+                <div
                   key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
                   className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                       message.sender === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-[#2A2A2A] text-gray-200'
+                        ? 'bg-blue-600 text-white rounded-br-none shadow-md shadow-blue-500/10'
+                        : 'bg-surface dark:bg-zinc-900/80 text-secondary rounded-bl-none border border-separator/35 dark:border-zinc-800/40 shadow-sm'
                     }`}
                   >
-                    {message.text}
+                    {/* Render basic markdown links */}
+                    {message.text.split('\n').map((paragraph, index) => {
+                      // Check for markdown links: [text](url)
+                      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+                      let lastIndex = 0;
+                      let parts = [];
+                      let match;
+
+                      while ((match = linkRegex.exec(paragraph)) !== null) {
+                        if (match.index > lastIndex) {
+                          parts.push(paragraph.substring(lastIndex, match.index));
+                        }
+                        parts.push(
+                          <a
+                            key={match.index}
+                            href={match[2]}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 dark:text-blue-400 hover:underline font-semibold"
+                          >
+                            {match[1]}
+                          </a>
+                        );
+                        lastIndex = linkRegex.lastIndex;
+                      }
+
+                      if (lastIndex < paragraph.length) {
+                        parts.push(paragraph.substring(lastIndex));
+                      }
+
+                      return (
+                        <p key={index} className={index > 0 ? "mt-1.5" : ""}>
+                          {parts.length > 0 ? parts : paragraph}
+                        </p>
+                      );
+                    })}
                   </div>
-                </motion.div>
+                </div>
               ))}
+
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-surface dark:bg-zinc-900/80 rounded-2xl rounded-bl-none px-4 py-3 text-sm border border-separator/35 dark:border-zinc-800/40 flex items-center gap-1.5 shadow-sm">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
-            <form onSubmit={handleSubmit} className="p-4 border-t border-gray-800">
+            {/* Quick Suggestion Chips */}
+            {messages.length === 1 && (
+              <div className="px-4 pb-3 flex flex-wrap gap-1.5 justify-start">
+                {suggestionChips.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSend(chip.query)}
+                    className="px-3 py-1.5 bg-surface dark:bg-zinc-900/50 border border-separator/50 dark:border-zinc-800 hover:border-accent/40 dark:hover:border-blue-500/40 hover:bg-surface-tertiary dark:hover:bg-zinc-800 text-secondary rounded-full text-xs font-medium transition-all duration-300 shadow-sm"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Input Bar */}
+            <form onSubmit={handleSubmit} className="p-4 border-t border-separator/30 dark:border-zinc-800/50 bg-surface/20 dark:bg-zinc-950/20">
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 bg-[#2A2A2A] text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ask a question..."
+                  disabled={isLoading}
+                  className="flex-1 bg-surface-secondary dark:bg-zinc-900/80 text-primary rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent border border-separator/45 dark:border-zinc-800/80 placeholder-zinc-500 disabled:opacity-50"
                 />
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  disabled={!inputMessage.trim() || isLoading}
+                  className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-2xl transition-all duration-300 disabled:opacity-40 disabled:hover:bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/15"
                 >
-                  <FaPaperPlane />
+                  <FaPaperPlane className="text-xs" />
                 </button>
               </div>
             </form>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Minimized Bar */}
+      <AnimatePresence>
+        {isOpen && isMinimized && (
+          <motion.button
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 50, opacity: 0 }}
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center gap-3 px-5 py-3.5 bg-surface dark:bg-zinc-900 border border-separator dark:border-zinc-800 rounded-full shadow-2xl text-primary dark:text-zinc-200"
+            onClick={() => setIsMinimized(false)}
+          >
+            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span className="font-semibold text-xs tracking-wider uppercase">Open Chat</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default ChatBot; 
+export default ChatBot;

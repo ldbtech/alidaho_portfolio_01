@@ -33,6 +33,7 @@ export async function generateStaticParams() {
 
 // Server component that fetches data at build time
 const ThoughtPage = async ({ params }) => {
+  const { id } = await params;
   let thought = null;
   let error = null;
 
@@ -41,8 +42,8 @@ const ThoughtPage = async ({ params }) => {
       throw new Error('Firebase database not initialized');
     }
 
-    console.log('Fetching thought with ID:', params.id);
-    const thoughtRef = ref(database, `thoughts/${params.id}`);
+    console.log('Fetching thought with ID:', id);
+    const thoughtRef = ref(database, `thoughts/${id}`);
     const snapshot = await get(thoughtRef);
     const data = snapshot.val();
     
@@ -58,10 +59,10 @@ const ThoughtPage = async ({ params }) => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{error}</h1>
-          <Link href="/thoughts" className="text-blue-500 hover:text-blue-600">
+      <div className="min-h-screen bg-theme text-primary flex items-center justify-center font-sans">
+        <div className="text-center bg-glass p-8 rounded-3xl border border-separator/30 shadow-md">
+          <h1 className="text-2xl font-black text-primary mb-4">{error}</h1>
+          <Link href="/thoughts" className="px-5 py-2.5 bg-accent text-white font-bold text-sm rounded-full shadow-lg shadow-accent/15">
             Return to Thoughts
           </Link>
         </div>
@@ -71,10 +72,10 @@ const ThoughtPage = async ({ params }) => {
 
   if (!thought) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Thought not found</h1>
-          <Link href="/thoughts" className="text-blue-500 hover:text-blue-600">
+      <div className="min-h-screen bg-theme text-primary flex items-center justify-center font-sans">
+        <div className="text-center bg-glass p-8 rounded-3xl border border-separator/30 shadow-md">
+          <h1 className="text-2xl font-black text-primary mb-4">Thought not found</h1>
+          <Link href="/thoughts" className="px-5 py-2.5 bg-accent text-white font-bold text-sm rounded-full shadow-lg shadow-accent/15">
             Return to Thoughts
           </Link>
         </div>

@@ -42,74 +42,109 @@
   }
 }
 
-/* Apple-inspired design system */
+/* Apple-inspired design system & 2026 aesthetics */
 :root {
-  /* Light theme defaults */
-  --foreground: #000000;
-  --background: #ffffff;
-  --surface: #f2f2f7;
+  /* Light theme - Clean ice/glass theme */
+  --foreground: #0f172a;
+  --background: #f4f6fa;
+  --surface: #eef2f6;
   --surface-secondary: #ffffff;
-  --surface-tertiary: #f2f2f7;
-  --text-primary: #000000;
-  --text-secondary: #3c3c43;
-  --text-tertiary: #3c3c4399;
-  --text-quaternary: #3c3c434d;
-  --separator: #c6c6c8;
-  --accent: #007aff;
-  --accent-hover: #0056b3;
-  --success: #34c759;
-  --warning: #ff9500;
-  --error: #ff3b30;
-  --gradient-start: #007aff;
-  --gradient-end: #5856d6;
-  --shadow: rgba(0, 0, 0, 0.1);
-  --shadow-light: rgba(0, 0, 0, 0.05);
+  --surface-tertiary: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --text-quaternary: #94a3b8;
+  --separator: #e2e8f0;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --gradient-start: #3b82f6;
+  --gradient-end: #6366f1;
+  --shadow: rgba(0, 0, 0, 0.03);
+  --shadow-light: rgba(0, 0, 0, 0.01);
+  --grid-dots: rgba(15, 23, 42, 0.05);
 }
 
-/* Dark theme (default) */
+/* Dark theme (default space-black theme) */
 .dark {
-  --foreground: #ffffff;
-  --background: #000000;
-  --surface: #1c1c1e;
-  --surface-secondary: #2c2c2e;
-  --surface-tertiary: #3a3a3c;
-  --text-primary: #ffffff;
-  --text-secondary: #ebebf5;
-  --text-tertiary: #ebebf599;
-  --text-quaternary: #ebebf54d;
-  --separator: #38383a;
-  --accent: #007aff;
-  --accent-hover: #0056b3;
-  --success: #34c759;
-  --warning: #ff9500;
-  --error: #ff3b30;
-  --gradient-start: #007aff;
-  --gradient-end: #5856d6;
-  --shadow: rgba(0, 0, 0, 0.3);
-  --shadow-light: rgba(0, 0, 0, 0.1);
+  --foreground: #f4f4f5;
+  --background: #030303;
+  --surface: #0a0a0c;
+  --surface-secondary: #121215;
+  --surface-tertiary: #1a1a22;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-quaternary: #52525b;
+  --separator: #27272a;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --gradient-start: #3b82f6;
+  --gradient-end: #8b5cf6;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-light: rgba(0, 0, 0, 0.2);
+  --grid-dots: rgba(255, 255, 255, 0.035);
 }
 
-/* Optional explicit light theme class (not required) */
+/* Optional explicit light theme class */
 .light {
-  --foreground: #000000;
-  --background: #ffffff;
-  --surface: #f2f2f7;
+  --foreground: #0f172a;
+  --background: #f4f6fa;
+  --surface: #eef2f6;
   --surface-secondary: #ffffff;
-  --surface-tertiary: #f2f2f7;
-  --text-primary: #000000;
-  --text-secondary: #3c3c43;
-  --text-tertiary: #3c3c4399;
-  --text-quaternary: #3c3c434d;
-  --separator: #c6c6c8;
-  --accent: #007aff;
-  --accent-hover: #0056b3;
-  --success: #34c759;
-  --warning: #ff9500;
-  --error: #ff3b30;
-  --gradient-start: #007aff;
-  --gradient-end: #5856d6;
-  --shadow: rgba(0, 0, 0, 0.1);
-  --shadow-light: rgba(0, 0, 0, 0.05);
+  --surface-tertiary: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --text-quaternary: #94a3b8;
+  --separator: #e2e8f0;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --gradient-start: #3b82f6;
+  --gradient-end: #6366f1;
+  --shadow: rgba(0, 0, 0, 0.03);
+  --shadow-light: rgba(0, 0, 0, 0.01);
+  --grid-dots: rgba(15, 23, 42, 0.05);
+}
+
+/* Glassmorphism & custom utility classes */
+.bg-glass {
+  background-color: rgba(18, 18, 21, 0.45);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+.light .bg-glass {
+  background-color: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+}
+
+.glow-border {
+  position: relative;
+  transition: all 0.3s ease;
+}
+.glow-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+.glow-border:hover::after {
+  opacity: 0.35;
 }
 
 /* Apple-style typography and base styles */

@@ -1,154 +1,42 @@
 "use client";
 
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { FaCode, FaServer, FaDatabase, FaTrophy, FaRobot, FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { fetchData } from "../services/firebase";
+import { FaCode, FaServer, FaDatabase, FaTrophy, FaGraduationCap, FaBriefcase, FaGlobe, FaFootballBall } from "react-icons/fa";
+import { fetchData, getVisitorCount } from "../services/firebase";
 import { useLanguage } from "../contexts/LanguageContext";
-
-const defaultSkillGroups = [
-  { title: 'Frontend Development', items: [] },
-  { title: 'Backend Development', items: [] },
-  { title: 'Database & Cloud', items: [] },
-  { title: 'Artificial Intelligence', items: [] },
-  { title: 'Tools & Others', items: [] }
-];
-
-// Collapsible Section Component
-const CollapsibleSection = ({ 
-  title, 
-  icon: Icon, 
-  children, 
-  isOpen, 
-  onToggle, 
-  count = null,
-  className = ""
-}) => (
-  <motion.div 
-    className={`bg-surface-secondary rounded-apple-lg overflow-hidden shadow-apple-light hover:shadow-apple transition-all duration-300 ${className}`}
-    initial={false}
-    animate={{ height: 'auto' }}
-  >
-    <button
-      onClick={onToggle}
-      className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-surface-tertiary transition-all duration-200 group"
-    >
-      <div className="flex items-center gap-3">
-        <Icon className="text-accent text-lg" />
-        <h3 className="text-lg font-semibold text-primary">{title}</h3>
-        {count !== null && (
-          <span className="bg-accent/10 text-accent text-xs px-2 py-1 rounded-apple">
-            {count}
-          </span>
-        )}
-      </div>
-      <motion.div
-        animate={{ rotate: isOpen ? 180 : 0 }}
-        transition={{ duration: 0.2 }}
-        className="text-secondary group-hover:text-primary transition-colors"
-      >
-        <FaChevronDown />
-      </motion.div>
-    </button>
-    
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="overflow-hidden"
-        >
-          <div className="px-6 pb-6 pt-2">
-            {children}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </motion.div>
-);
+import LoadingState from "./LoadingState";
 
 const AboutSection = () => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState("experience");
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageError, setImageError] = useState(false);
-  
-  // Collapsible sections state
-  const [openSections, setOpenSections] = useState({
-    experience: true,
-    achievements: true,
-    education: true,
-    programmingLanguages: true,
-    skills: true,
-    aiTools: true
-  });
+  const [visitorCount, setVisitorCount] = useState(null);
+  const [expandedExp, setExpandedExp] = useState({ 0: true });
+  const [expandedEdu, setExpandedEdu] = useState({ 0: true });
 
-  // Toggle section function
-  const toggleSection = (section) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  const toggleExp = (index) => {
+    setExpandedExp(prev => ({ ...prev, [index]: !prev[index] }));
   };
 
-  // Function to render description with bullet points
-  const renderDescription = (description) => {
-    if (!description) return null;
-    
-    // Split by lines and check for bullet points
-    const lines = description.split('\n').filter(line => line.trim());
-    
-    // Check if any line starts with a bullet point indicator
-    const hasBulletPoints = lines.some(line => 
-      line.trim().startsWith('- ') || 
-      line.trim().startsWith('• ') || 
-      line.trim().startsWith('* ')
-    );
-    
-    if (hasBulletPoints) {
-      return (
-        <ul className="mt-2 space-y-1">
-          {lines.map((line, index) => {
-            const trimmedLine = line.trim();
-            // Remove bullet point indicators and render as list item
-            const cleanLine = trimmedLine.replace(/^[-•*]\s*/, '');
-            return (
-              <li key={index} className="text-secondary flex items-start">
-                <span className="text-accent mr-2 mt-1">•</span>
-                <span>{cleanLine}</span>
-              </li>
-            );
-          })}
-        </ul>
-      );
-    }
-    
-    // If no bullet points, render as regular paragraph
-    return <p className="mt-2 text-secondary">{description}</p>;
+  const toggleEdu = (index) => {
+    setExpandedEdu(prev => ({ ...prev, [index]: !prev[index] }));
   };
-
-  const tabs = [
-    { id: "experience", label: typeof t('about.experience', 'Experience') === 'string' ? t('about.experience', 'Experience') : 'Experience', icon: <FaServer className="text-xl" /> },
-    { id: "education", label: typeof t('about.education', 'Education') === 'string' ? t('about.education', 'Education') : 'Education', icon: <FaDatabase className="text-xl" /> },
-    { id: "achievements", label: typeof t('about.extracurricularAndAchievement', 'Extracurricular and Achievement') === 'string' ? t('about.extracurricularAndAchievement', 'Extracurricular and Achievement') : 'Extracurricular and Achievement', icon: <FaTrophy className="text-xl" /> },
-    { id: "programmingLanguages", label: typeof t('about.programming', 'Programming') === 'string' ? t('about.programming', 'Programming') : 'Programming', icon: <FaCode className="text-xl" /> },
-    { id: "skills", label: typeof t('about.skills', 'Skills') === 'string' ? t('about.skills', 'Skills') : 'Skills', icon: <FaCode className="text-xl" /> },
-    { id: "aiTools", label: typeof t('about.aiTools', 'AI Tools') === 'string' ? t('about.aiTools', 'AI Tools') : 'AI Tools', icon: <FaRobot className="text-xl" /> },
-  ];
 
   useEffect(() => {
     const loadContent = async () => {
       try {
-        const data = await fetchData('about');
+        const [data, visits] = await Promise.all([
+          fetchData('about'),
+          getVisitorCount()
+        ]);
+        setVisitorCount(visits);
+
         if (data) {
-          // Ensure all required data structures exist with default values
-          const contentWithDefaults = {
-            ...data,
+          setContent({
             bio: data.bio || '',
             images: {
               profile: data.images?.profile || '',
@@ -156,39 +44,13 @@ const AboutSection = () => {
               background: data.images?.background || '',
               additional: data.images?.additional || []
             },
-            skillGroups: Array.isArray(data.skillGroups) ? data.skillGroups : defaultSkillGroups,
+            skillGroups: Array.isArray(data.skillGroups) ? data.skillGroups : [],
             experience: Array.isArray(data.experience) ? data.experience : [],
             education: Array.isArray(data.education) ? data.education : [],
             achievements: Array.isArray(data.achievements) ? data.achievements : [],
             programmingLanguages: Array.isArray(data.programmingLanguages) ? data.programmingLanguages : [],
             spokenLanguages: Array.isArray(data.spokenLanguages) ? data.spokenLanguages : [],
             aiTools: Array.isArray(data.aiTools) ? data.aiTools : []
-          };
-
-          // Ensure each skill group has the required structure
-          contentWithDefaults.skillGroups = contentWithDefaults.skillGroups.map(group => ({
-            title: group.title || 'Unnamed Group',
-            items: Array.isArray(group.items) ? group.items : []
-          }));
-
-          setContent(contentWithDefaults);
-        } else {
-          // If no data is returned, use default values
-          setContent({
-            bio: '',
-            images: {
-              profile: '',
-              aboutMe: '',
-              background: '',
-              additional: []
-            },
-            skillGroups: defaultSkillGroups,
-            experience: [],
-            education: [],
-            achievements: [],
-            programmingLanguages: [],
-            spokenLanguages: [],
-            aiTools: []
           });
         }
       } catch (err) {
@@ -203,17 +65,40 @@ const AboutSection = () => {
   }, []);
 
   const handleImageError = () => {
-    console.error('Failed to load profile image');
     setImageError(true);
+  };
+
+  const renderDescription = (description) => {
+    if (!description) return null;
+    const lines = description.split('\n').filter(line => line.trim());
+    const hasBulletPoints = lines.some(line => 
+      line.trim().startsWith('- ') || 
+      line.trim().startsWith('• ') || 
+      line.trim().startsWith('* ')
+    );
+    
+    if (hasBulletPoints) {
+      return (
+        <ul className="mt-2 space-y-1 text-xs sm:text-sm">
+          {lines.map((line, index) => {
+            const cleanLine = line.trim().replace(/^[-•*]\s*/, '');
+            return (
+              <li key={index} className="text-secondary flex items-start">
+                <span className="text-accent mr-2 mt-1">•</span>
+                <span>{cleanLine}</span>
+              </li>
+            );
+          })}
+        </ul>
+      );
+    }
+    return <p className="mt-2 text-secondary text-xs sm:text-sm leading-relaxed">{description}</p>;
   };
 
   if (loading) {
     return (
-      <section id="about" className="py-16">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="text-[#ADB7BE] mt-4">Loading content...</p>
-        </div>
+      <section id="about" className="py-16 bg-theme">
+        <LoadingState message="Loading stats & bio..." />
       </section>
     );
   }
@@ -228,447 +113,399 @@ const AboutSection = () => {
     );
   }
 
+  // Helper to extract year from period string to allow chronological sorting
+  const extractYear = (periodString) => {
+    if (!periodString) return 0;
+    const lowerPeriod = periodString.toLowerCase();
+    if (lowerPeriod.includes("present") || lowerPeriod.includes("current") || lowerPeriod.includes("now")) {
+      return 9999;
+    }
+    const years = periodString.match(/\b\d{4}\b/g);
+    if (!years || years.length === 0) return 0;
+    return Math.max(...years.map(Number));
+  };
+
+  const sortedExperiences = content.experience && content.experience.length > 0
+    ? [...content.experience].sort((a, b) => extractYear(b.period) - extractYear(a.period))
+    : [];
+
+  const sortedEducation = content.education && content.education.length > 0
+    ? [...content.education].sort((a, b) => extractYear(b.period) - extractYear(a.period))
+    : [];
+
   return (
-    <section className="pt-8 pb-12 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20 space-y-8 sm:space-y-12 lg:space-y-16" id="about">
-      <div className="text-center space-y-4 sm:space-y-6 px-4">
-        <motion.div
+    <section className="pt-8 pb-12 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20 space-y-8 sm:space-y-12" id="about">
+      {/* Title */}
+      <div className="text-center space-y-4 px-4">
+        <motion.h2
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto mb-6 sm:mb-8"
+          className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary"
         >
-          {content.images.aboutMe && !imageError ? (
-            <Image
-              src={content.images.aboutMe}
-              alt="About Me"
-              className="rounded-apple-xl object-cover shadow-apple"
-              fill
-              priority
-              unoptimized
-              onError={handleImageError}
-            />
-          ) : (
-            <div className="w-full h-full rounded-apple-xl bg-gradient-theme flex items-center justify-center text-white text-2xl font-semibold shadow-apple">
-              AD
-            </div>
-          )}
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="space-y-4"
-        >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary">
-            {(() => {
-              const title = t('about.title', 'About Me');
-              const titleParts = typeof title === 'string' ? title.split(' ') : ['About', 'Me'];
-              return (
-                <>
-                  {titleParts[0]} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-500">{titleParts[1] || 'Me'}</span>
-                </>
-              );
-            })()}
-          </h2>
-          <p className="text-secondary text-base sm:text-lg lg:text-xl max-w-3xl mx-auto leading-relaxed">
-            {content.bio}
-          </p>
-        </motion.div>
+          {(() => {
+            const title = t('about.title', 'About Me');
+            const titleParts = typeof title === 'string' ? title.split(' ') : ['About', 'Me'];
+            return (
+              <>
+                {titleParts[0]} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">{titleParts[1] || 'Me'}</span>
+              </>
+            );
+          })()}
+        </motion.h2>
+        <p className="text-secondary text-sm sm:text-base max-w-xl mx-auto">
+          A glimpse into my background, core expertise, and technical journey.
+        </p>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="space-y-8"
-      >
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 px-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 rounded-apple transition-apple text-sm sm:text-base ${
-                activeTab === tab.id
-                  ? "bg-accent text-white shadow-apple-light"
-                  : "bg-surface-secondary text-secondary hover:bg-surface-tertiary"
-              }`}
-            >
-              <span className="text-lg sm:text-xl">{tab.icon}</span>
-              <span className="font-medium">{tab.label}</span>
-            </button>
-          ))}
-        </div>
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 px-4">
         
-        <div className="bg-surface-secondary rounded-apple-lg p-4 sm:p-6 lg:p-8 shadow-apple-light mx-4 sm:mx-0">
-            {activeTab === "skills" && (
-              <div className="flex flex-wrap gap-3">
-                {content.skillGroups.map((group, index) => 
-                  group.items.map((skill, skillIndex) => (
-                    <span
-                      key={`${index}-${skillIndex}`}
-                      className="px-4 py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border border-green-500/30 rounded-apple text-sm font-medium"
-                    >
-                      {skill}
-                    </span>
-                  ))
-                )}
-                {content.skillGroups.every(group => group.items.length === 0) && (
-                  <div className="text-center py-8 w-full">
-                    <h3 className="text-xl font-semibold text-primary mb-2">No Skills Yet</h3>
-                    <p className="text-secondary">Add your skills in the admin panel to showcase your expertise!</p>
-                  </div>
-                )}
+        {/* Box 1: Profile & Bio (col-span-2) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="bg-glass rounded-3xl p-6 md:p-8 md:col-span-2 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] hover:border-blue-500/20 transition-all duration-300 group"
+        >
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 shadow-lg border border-zinc-200 dark:border-zinc-800">
+              {content.images.aboutMe && !imageError ? (
+                <Image
+                  src={content.images.aboutMe}
+                  alt="Ali Daho"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                  onError={handleImageError}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-theme flex items-center justify-center text-white text-2xl font-bold">
+                  AD
+                </div>
+              )}
+            </div>
+            <div className="space-y-3 text-center sm:text-left">
+              <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-semibold uppercase tracking-wider">
+                Full Stack & AI Engineer
+              </span>
+              <h3 className="text-xl sm:text-2xl font-bold text-primary">Ali Daho Bachir</h3>
+              <p className="text-secondary text-sm sm:text-base leading-relaxed">
+                {content.bio || "I'm a passionate Software Engineer focused on building intelligent web and mobile solutions."}
+              </p>
+            </div>
+          </div>
+          
+          {/* Stats Bar */}
+          <div className="grid grid-cols-3 gap-4 pt-6 mt-6 border-t border-zinc-200/60 dark:border-zinc-800/40 text-center">
+            <div>
+              <span className="block text-2xl font-extrabold text-blue-500">
+                {content.experience.length}+
+              </span>
+              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">Roles Held</span>
+            </div>
+            <div>
+              <span className="block text-2xl font-extrabold text-emerald-500">
+                9+
+              </span>
+              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">Active Projects</span>
+            </div>
+            <div>
+              <span className="block text-2xl font-extrabold text-indigo-500">
+                {visitorCount || 420}
+              </span>
+              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">Profile Visits</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Box 2: Tech Stack (col-span-1) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="bg-glass rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(139,92,246,0.06)] hover:border-purple-500/20 transition-all duration-300 group"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                <FaCode className="text-lg" />
               </div>
-            )}
-            {activeTab === "experience" && (
-              <CollapsibleSection
-                title="Work Experience"
-                icon={FaServer}
-                isOpen={openSections.experience}
-                onToggle={() => toggleSection('experience')}
-                count={content.experience.length}
-              >
-                <div className="space-y-6">
-                  {content.experience
-                    .sort((a, b) => {
-                      // Extract start date from period string with better parsing
-                      const getStartDate = (period) => {
-                        if (!period) return new Date(0);
+              <h3 className="font-bold text-primary text-base sm:text-lg">Tech Stack</h3>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Programming Languages */}
+              {content.programmingLanguages.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {content.programmingLanguages.map((lang, i) => (
+                    <span key={i} className="px-2.5 py-1 bg-blue-500/15 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-semibold">
+                      {lang.language}
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {/* Core Skill Categories */}
+              <div className="flex flex-wrap gap-1.5">
+                {content.skillGroups.flatMap(g => g.items || []).slice(0, 8).map((skill, i) => (
+                  <span key={i} className="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-semibold">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+
+              {/* AI & Tools */}
+              {content.aiTools.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {content.aiTools.slice(0, 4).map((tool, i) => (
+                    <span key={i} className="px-2.5 py-1 bg-purple-500/15 text-purple-400 border border-purple-500/20 rounded-lg text-xs font-semibold">
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <p className="text-[11px] text-tertiary mt-4 leading-normal">
+            Ali specializes in full-stack setups, convolutional neural nets, and real-time simulator codebases.
+          </p>
+        </motion.div>
+
+        {/* Box 3: Experience & Education Journey (col-span-2) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-glass rounded-3xl p-6 md:p-8 md:col-span-2 border border-zinc-200 dark:border-zinc-800/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] hover:border-blue-500/20 transition-all duration-300 group"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Experience Column */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
+                  <FaBriefcase className="text-lg" />
+                </div>
+                <h3 className="font-bold text-primary text-base sm:text-lg">Work Experience</h3>
+              </div>
+
+              {sortedExperiences.length > 0 ? (
+                <div className="relative pl-6 sm:pl-8 border-l border-zinc-200 dark:border-zinc-800/60 space-y-6">
+                  {sortedExperiences.map((exp, index) => {
+                    const isExpanded = !!expandedExp[index];
+                    return (
+                      <div 
+                        key={index} 
+                        className="relative group/item cursor-pointer"
+                        onClick={() => toggleExp(index)}
+                      >
+                        {/* Timeline Dot */}
+                        <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 w-3.5 h-3.5 rounded-full bg-blue-500 border border-white dark:border-zinc-950 shadow-md group-hover/item:scale-110 transition-transform" />
                         
-                        // Split by ' - ' and take the first part (start date)
-                        const startDateStr = period.split(' - ')[0].trim();
-                        
-                        // Handle different date formats
-                        // Format: "Month YYYY" (e.g., "March 2024")
-                        if (/^[A-Za-z]+ \d{4}$/.test(startDateStr)) {
-                          return new Date(startDateStr);
-                        }
-                        
-                        // Format: "Month YYYY - Month YYYY" (e.g., "March 2024 - August 2024")
-                        if (startDateStr.includes(' ')) {
-                          return new Date(startDateStr);
-                        }
-                        
-                        // Fallback to original parsing
-                        return new Date(startDateStr);
-                      };
-                      
-                      // Sort by start date (most recent first)
-                      const dateA = getStartDate(a.period);
-                      const dateB = getStartDate(b.period);
-                      
-                      // Handle invalid dates
-                      if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-                      if (isNaN(dateA.getTime())) return 1;
-                      if (isNaN(dateB.getTime())) return -1;
-                      
-                      return dateB - dateA;
-                    })
-                    .map((exp, index) => (
-                      <div key={index} className="bg-surface rounded-apple p-4 sm:p-6 shadow-apple-light">
-                        <div className="space-y-3">
-                          <div className="flex items-start gap-3 sm:gap-4">
-                            {exp.logo && (
-                              <div className="flex-shrink-0">
-                                <Image
-                                  src={exp.logo}
-                                  alt={`${exp.company} logo`}
-                                  width={40}
-                                  height={40}
-                                  className="rounded-lg object-contain sm:w-12 sm:h-12"
-                                  unoptimized
-                                  onError={(e) => {
-                                    e.target.style.display = 'none';
-                                  }}
-                                />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-primary">{exp.title}</h3>
-                              <p className="text-accent font-medium text-base sm:text-lg">{exp.company}</p>
-                              <p className="text-tertiary text-xs sm:text-sm font-medium">{exp.period}</p>
-                            </div>
+                        <div className="space-y-1 select-none">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                            <h4 className="font-bold text-primary text-sm sm:text-base group-hover/item:text-blue-400 transition-colors flex items-center gap-1.5">
+                              {exp.title}
+                              <span className="text-[10px] text-zinc-500 font-normal transition-transform duration-300">
+                                {isExpanded ? "▲" : "▼"}
+                              </span>
+                            </h4>
+                            <span className="text-[11px] text-tertiary font-semibold">{exp.period}</span>
                           </div>
-                          <div className="pt-2">
+                          <span className="text-xs font-semibold text-blue-400 block">{exp.company}</span>
+                          
+                          <motion.div
+                            initial={false}
+                            animate={{ 
+                              height: isExpanded ? "auto" : 0, 
+                              opacity: isExpanded ? 1 : 0,
+                              marginTop: isExpanded ? "0.5rem" : 0
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="overflow-hidden text-xs sm:text-sm"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             {renderDescription(exp.description)}
-                          </div>
+                          </motion.div>
                         </div>
                       </div>
-                    ))}
-                  
-                  {content.experience.length === 0 && (
-                    <motion.div 
-                      className="text-center py-12"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <FaServer className="text-6xl text-tertiary mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-primary mb-2">{typeof t('about.noExperience', 'No Experience Yet') === 'string' ? t('about.noExperience', 'No Experience Yet') : 'No Experience Yet'}</h3>
-                      <p className="text-secondary">
-                        {typeof t('about.noExperienceDesc', 'Add your work experience in the admin panel to showcase your professional journey!') === 'string' ? t('about.noExperienceDesc', 'Add your work experience in the admin panel to showcase your professional journey!') : 'Add your work experience in the admin panel to showcase your professional journey!'}
-                      </p>
-                    </motion.div>
-                  )}
-                </div>
-              </CollapsibleSection>
-            )}
-            {activeTab === "education" && (
-              <div className="space-y-12">
-                {content.education
-                  .sort((a, b) => {
-                    // Extract start date from period string with better parsing
-                    const getStartDate = (period) => {
-                      if (!period) return new Date(0);
-                      
-                      // Split by ' - ' and take the first part (start date)
-                      const startDateStr = period.split(' - ')[0].trim();
-                      
-                      // Handle different date formats
-                      // Format: "Month YYYY" (e.g., "March 2024")
-                      if (/^[A-Za-z]+ \d{4}$/.test(startDateStr)) {
-                        return new Date(startDateStr);
-                      }
-                      
-                      // Format: "Month YYYY - Month YYYY" (e.g., "March 2024 - August 2024")
-                      if (startDateStr.includes(' ')) {
-                        return new Date(startDateStr);
-                      }
-                      
-                      // Fallback to original parsing
-                      return new Date(startDateStr);
-                    };
-                    
-                    // Sort by start date (most recent first)
-                    const dateA = getStartDate(a.period);
-                    const dateB = getStartDate(b.period);
-                    
-                    // Handle invalid dates
-                    if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-                    if (isNaN(dateA.getTime())) return 1;
-                    if (isNaN(dateB.getTime())) return -1;
-                    
-                    return dateB - dateA;
-                  })
-                  .map((edu, index) => {
-                    return (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                        className="group"
-                      >
-                        {/* Minimalist Card */}
-                        <div className="bg-surface-secondary/50 backdrop-blur-sm border border-separator rounded-2xl p-8 hover:border-accent/30 transition-all duration-300">
-                          {/* Header */}
-                          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
-                            <div className="space-y-3">
-                              <h3 className="text-2xl font-bold text-primary group-hover:text-accent transition-colors duration-300">
-                                {edu.degree}
-                              </h3>
-                              <p className="text-accent font-medium text-lg">{edu.school}</p>
-                              {edu.description && (
-                                <p className="text-secondary leading-relaxed max-w-2xl">
-                                  {edu.description}
-                                </p>
-                              )}
-                            </div>
-                            
-                            <div className="flex flex-col items-end gap-3">
-                              <span className="px-3 py-1 bg-accent/10 text-accent text-sm font-medium rounded-lg">
-                                {edu.period}
-                              </span>
-                              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Coursework Section - Only show if courses exist */}
-                          {edu.courses && edu.courses.length > 0 && (
-                            <div className="space-y-4">
-                              <h4 className="text-lg font-semibold text-primary">{typeof t('about.relevantCoursework', 'Relevant Coursework') === 'string' ? t('about.relevantCoursework', 'Relevant Coursework') : 'Relevant Coursework'}</h4>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {edu.courses.map((course, courseIndex) => (
-                                  <div
-                                    key={courseIndex}
-                                    className="px-3 py-2 bg-surface/50 border border-separator rounded-lg text-sm text-secondary hover:bg-accent/10 hover:text-accent hover:border-accent/20 transition-colors duration-200 cursor-pointer"
-                                  >
-                                    {course}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
                     );
                   })}
-                
-                {content.education.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center py-16"
-                  >
-                    <div className="w-20 h-20 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                      <svg className="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold text-primary mb-2">{typeof t('about.noEducation', 'No Education Added Yet') === 'string' ? t('about.noEducation', 'No Education Added Yet') : 'No Education Added Yet'}</h3>
-                    <p className="text-secondary">
-                      {typeof t('about.noEducationDesc', 'Add your educational background in the admin panel to showcase your academic achievements!') === 'string' ? t('about.noEducationDesc', 'Add your educational background in the admin panel to showcase your academic achievements!') : 'Add your educational background in the admin panel to showcase your academic achievements!'}
-                    </p>
-                  </motion.div>
-                )}
-              </div>
-            )}
-            {activeTab === "achievements" && (
-              <CollapsibleSection
-                title="Extracurricular and Achievement"
-                icon={FaTrophy}
-                isOpen={openSections.achievements}
-                onToggle={() => toggleSection('achievements')}
-                count={content.achievements.length}
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {content.achievements.map((achievement, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className="bg-surface rounded-apple-lg p-6 shadow-apple-light hover:shadow-apple transition-apple group"
-                    >
-                      {/* Achievement Image */}
-                      {achievement.image && (
-                        <div className="relative w-full h-48 mb-4 rounded-apple overflow-hidden">
-                          <Image
-                            src={achievement.image}
-                            alt={achievement.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-apple"
-                            unoptimized
-                          />
-                        </div>
-                      )}
-                      
-                      {/* Achievement Content */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <FaTrophy className="text-accent text-lg" />
-                          <h3 className="text-xl font-semibold text-primary">{achievement.title}</h3>
-                        </div>
-                        
-                        {achievement.category && (
-                          <span className="inline-block px-3 py-1 bg-accent/10 text-accent rounded-apple text-sm font-medium">
-                            {achievement.category}
-                          </span>
-                        )}
-                        
-                        {achievement.date && (
-                          <p className="text-secondary text-sm">
-                            {achievement.date}
-                          </p>
-                        )}
-                        
-                        {achievement.description && (
-                          <p className="text-secondary text-sm leading-relaxed">
-                            {achievement.description}
-                          </p>
-                        )}
-                        
-                        {achievement.organization && (
-                          <p className="text-tertiary text-sm">
-                            <span className="font-medium">Organization:</span> {achievement.organization}
-                          </p>
-                        )}
-                        
-                        {achievement.position && (
-                          <p className="text-tertiary text-sm">
-                            <span className="font-medium">Position:</span> {achievement.position}
-                          </p>
-                        )}
-                        
-                        {achievement.location && (
-                          <p className="text-tertiary text-sm">
-                            <span className="font-medium">Location:</span> {achievement.location}
-                          </p>
-                        )}
-                        
-                        {achievement.link && (
-                          <div className="pt-2">
-                            <a
-                              href={achievement.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-apple text-sm font-medium transition-apple"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                              </svg>
-                              View Details
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                  
-                  {content.achievements.length === 0 && (
-                    <div className="col-span-full text-center py-12">
-                      <FaTrophy className="text-6xl text-tertiary mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-primary mb-2">{typeof t('about.noExtracurricularAndAchievement', 'No Extracurricular and Achievement Yet') === 'string' ? t('about.noExtracurricularAndAchievement', 'No Extracurricular and Achievement Yet') : 'No Extracurricular and Achievement Yet'}</h3>
-                      <p className="text-secondary">{typeof t('about.noExtracurricularAndAchievementDesc', 'Add your extracurricular activities and achievements in the admin panel to showcase your accomplishments!') === 'string' ? t('about.noExtracurricularAndAchievementDesc', 'Add your extracurricular activities and achievements in the admin panel to showcase your accomplishments!') : 'Add your extracurricular activities and achievements in the admin panel to showcase your accomplishments!'}</p>
-                    </div>
-                  )}
                 </div>
-              </CollapsibleSection>
-            )}
-            {activeTab === "programmingLanguages" && (
-              <div className="flex flex-wrap gap-3">
-                {content.programmingLanguages.map((lang, index) => (
-                  <span
-                    key={index}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border border-blue-500/30 rounded-apple text-sm font-medium"
-                  >
-                    {lang.language} ({lang.level})
-                  </span>
-                ))}
-                {content.programmingLanguages.length === 0 && (
-                  <div className="text-center py-8 w-full">
-                    <h3 className="text-xl font-semibold text-primary mb-2">No Programming Languages Yet</h3>
-                    <p className="text-secondary">Add your programming languages and proficiency levels in the admin panel!</p>
-                  </div>
-                )}
+              ) : (
+                <p className="text-xs text-tertiary">No experience configured.</p>
+              )}
+            </div>
+
+            {/* Education Column */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
+                  <FaGraduationCap className="text-lg" />
+                </div>
+                <h3 className="font-bold text-primary text-base sm:text-lg">Education</h3>
               </div>
-            )}
-            {activeTab === "aiTools" && (
-              <div className="flex flex-wrap gap-3">
-                {content.aiTools.map((aiTool) => (
-                  <span
-                    key={aiTool}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 rounded-apple text-sm font-medium"
-                  >
-                    {aiTool}
-                  </span>
-                ))}
-                {content.aiTools.length === 0 && (
-                  <div className="text-center py-8">
-                    <h3 className="text-xl font-semibold text-primary mb-2">No AI Tools Yet</h3>
-                    <p className="text-secondary">Add your AI tools and technologies in the admin panel to showcase your AI expertise!</p>
-                  </div>
-                )}
+
+              {sortedEducation.length > 0 ? (
+                <div className="relative pl-6 sm:pl-8 border-l border-zinc-200 dark:border-zinc-800/60 space-y-6">
+                  {sortedEducation.map((edu, index) => {
+                    const isExpanded = !!expandedEdu[index];
+                    return (
+                      <div 
+                        key={index} 
+                        className="relative group/item cursor-pointer"
+                        onClick={() => toggleEdu(index)}
+                      >
+                        {/* Timeline Dot */}
+                        <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 w-3.5 h-3.5 rounded-full bg-indigo-500 border border-white dark:border-zinc-950 shadow-md group-hover/item:scale-110 transition-transform" />
+                        
+                        <div className="space-y-1 select-none">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                            <h4 className="font-bold text-primary text-sm sm:text-base group-hover/item:text-indigo-400 transition-colors flex items-center gap-1.5">
+                              {edu.degree}
+                              <span className="text-[10px] text-zinc-500 font-normal transition-transform duration-300">
+                                {isExpanded ? "▲" : "▼"}
+                              </span>
+                            </h4>
+                            <span className="text-[11px] text-tertiary font-semibold">{edu.period}</span>
+                          </div>
+                          <span className="text-xs font-semibold text-indigo-400 block">{edu.school}</span>
+                          
+                          <motion.div
+                            initial={false}
+                            animate={{ 
+                              height: isExpanded ? "auto" : 0, 
+                              opacity: isExpanded ? 1 : 0,
+                              marginTop: isExpanded ? "0.5rem" : 0
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="overflow-hidden text-xs sm:text-sm"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {renderDescription(edu.description)}
+                          </motion.div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-tertiary">No education configured.</p>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Box 4: Spoken Languages & Striker Badge (col-span-1) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.25 }}
+          className="bg-glass rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(16,185,129,0.06)] hover:border-emerald-500/20 transition-all duration-300 group"
+        >
+          <div className="space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                <FaGlobe className="text-lg" />
               </div>
-            )}
-        </div>
-      </motion.div>
+              <h3 className="font-bold text-primary text-base sm:text-lg">Languages & Fun</h3>
+            </div>
+            
+            {/* Languages lists */}
+            <div className="space-y-3">
+              {content.spokenLanguages && content.spokenLanguages.length > 0 ? (
+                content.spokenLanguages.map((lang, index) => {
+                  const flagMap = {
+                    english: "🇬🇧",
+                    french: "🇫🇷",
+                    arabic: "🇩🇿",
+                    russian: "🇷🇺",
+                    spanish: "🇪🇸",
+                    german: "🇩🇪",
+                    italian: "🇮🇹",
+                    chinese: "🇨🇳",
+                    japanese: "🇯🇵",
+                    korean: "🇰🇷",
+                    portuguese: "🇵🇹",
+                    hindi: "🇮🇳"
+                  };
+                  const normalizedLang = lang.language?.toLowerCase().trim() || "";
+                  const flag = flagMap[normalizedLang] || "🗣️";
+                  
+                  return (
+                    <div key={index} className="flex justify-between items-center text-xs">
+                      <span className="text-secondary font-medium">{flag} {lang.language}</span>
+                      <span className="text-tertiary">{lang.level}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-tertiary">No languages configured.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Soccer badge card */}
+          <div className="mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800/40 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+              <FaFootballBall className="text-amber-500 text-lg animate-spin" style={{ animationDuration: '8s' }} />
+            </div>
+            <div>
+              <span className="block text-xs font-extrabold text-primary">Best Striker ⚽️</span>
+              <span className="text-[10px] text-tertiary leading-none block">Earned on the local pitch</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Box 5: Education & Highlights (col-span-3) */}
+        {content.achievements.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="bg-glass rounded-3xl p-6 md:p-8 md:col-span-3 border border-zinc-200 dark:border-zinc-800/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)] hover:border-amber-500/20 transition-all duration-300 group"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
+                <FaTrophy className="text-lg" />
+              </div>
+              <h3 className="font-bold text-primary text-base sm:text-lg">Achievements & Highlights</h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {content.achievements.slice(0, 3).map((achievement, index) => (
+                <div key={index} className="bg-zinc-100/50 dark:bg-zinc-900/40 rounded-2xl p-4 sm:p-5 border border-zinc-200 dark:border-zinc-800/60 hover:border-amber-500/30 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <FaTrophy className="text-amber-400 text-base shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-bold text-primary text-sm leading-tight mb-1">{achievement.title}</h4>
+                      {achievement.category && (
+                        <span className="inline-block px-1.5 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[9px] font-semibold mb-2 uppercase">{achievement.category}</span>
+                      )}
+                      {achievement.description && (
+                        <p className="text-secondary text-xs leading-relaxed line-clamp-3">{achievement.description}</p>
+                      )}
+                      {achievement.link && (
+                        <a href={achievement.link} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 text-blue-400 text-xs font-semibold hover:underline">
+                          View details →
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+      </div>
     </section>
   );
 };

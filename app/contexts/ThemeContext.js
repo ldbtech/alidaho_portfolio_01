@@ -38,11 +38,10 @@ export const ThemeProvider = ({ children }) => {
       localStorage.setItem('theme', theme);
     } catch (_) {}
 
-    // Toggle only the 'dark' class (Tailwind dark mode uses class strategy)
+    // Toggle dark/light classes on document root
     const isDark = theme === 'dark';
     document.documentElement.classList.toggle('dark', isDark);
-    // Ensure we do not leave stray 'light'/'dark' class names
-    document.documentElement.classList.remove('light');
+    document.documentElement.classList.toggle('light', !isDark);
   }, [theme, mounted]);
 
   const toggleTheme = () => {
