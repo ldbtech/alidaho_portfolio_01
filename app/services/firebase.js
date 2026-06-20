@@ -3,27 +3,24 @@ import { getDatabase, ref, set, get, remove, connectDatabaseEmulator } from "fir
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
-// Fallback configuration in case environment variables are not available
-const fallbackConfig = {
-  apiKey: "AIzaSyBjaLRz-y4sH1zD36lY8XdDZSpmvo-kc0w",
-  authDomain: "web-js-abf55.firebaseapp.com",
-  databaseURL: "https://web-js-abf55-default-rtdb.firebaseio.com",
-  projectId: "web-js-abf55",
-  storageBucket: "web-js-abf55.firebasestorage.app",
-  messagingSenderId: "477149138140",
-  appId: "1:477149138140:web:11a5577a4da879a8523819"
+// Firebase config is sourced entirely from environment variables.
+// Local dev reads these from .env.local; production reads them from Vercel.
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Try to use environment variables, fall back to hardcoded values if not available
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || fallbackConfig.apiKey,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || fallbackConfig.authDomain,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || fallbackConfig.databaseURL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || fallbackConfig.projectId,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || fallbackConfig.storageBucket,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || fallbackConfig.messagingSenderId,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || fallbackConfig.appId
-};
+// Fail loudly if the config is missing so misconfigured deploys are obvious.
+if (!firebaseConfig.apiKey || !firebaseConfig.databaseURL) {
+  console.error(
+    "Firebase env vars are missing. Set NEXT_PUBLIC_FIREBASE_* in .env.local (local) and in Vercel (production)."
+  );
+}
 
 // Initialize Firebase
 let app;
@@ -43,18 +40,6 @@ try {
   console.log('Firebase initialized successfully');
 } catch (error) {
   console.error('Error initializing Firebase:', error);
-  // Provide fallback values for development
-  if (process.env.NODE_ENV === 'development') {
-    console.warn('Using fallback Firebase configuration');
-    try {
-      app = initializeApp(fallbackConfig);
-      database = getDatabase(app);
-      auth = getAuth(app);
-      console.log('Fallback Firebase initialization successful');
-    } catch (fallbackError) {
-      console.error('Fallback Firebase initialization failed:', fallbackError);
-    }
-  }
 }
 
 // Initialize Analytics only in browser environment

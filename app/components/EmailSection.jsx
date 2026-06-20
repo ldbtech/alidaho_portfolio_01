@@ -14,7 +14,7 @@ const EmailSection = () => {
 
     useEffect(() => {
         // Initialize EmailJS with your public key
-        const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "6iPziy_x_pJRzimF_";
+        const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
         emailjs.init(publicKey);
     }, []);
 
@@ -24,9 +24,9 @@ const EmailSection = () => {
         setError("");
 
         try {
-            const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_np3ln8m";
-            const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_5bj5bdr";
-            const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "6iPziy_x_pJRzimF_";
+            const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+            const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+            const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
             const result = await emailjs.sendForm(
                 serviceId,

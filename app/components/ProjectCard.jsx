@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
 import Image from "next/image";
+import { useAutoText } from "../hooks/useAutoText";
 
 export const cardVariants = {
   hidden: { opacity: 0, y: 28 },
@@ -18,6 +19,10 @@ const ProjectCard = ({ project, featured = false }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
+  // Auto-translate the card's dynamic content into the active language.
+  const title = useAutoText(project.title);
+  const description = useAutoText(project.description);
+
   // Detect whether the description is actually truncated so the
   // toggle only shows when there's more text to reveal.
   useEffect(() => {
@@ -27,7 +32,7 @@ const ProjectCard = ({ project, featured = false }) => {
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
-  }, [project.description, expanded, featured]);
+  }, [description, expanded, featured]);
 
   const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [7, -7]), { stiffness: 300, damping: 30 });
   const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-7, 7]), { stiffness: 300, damping: 30 });
@@ -92,7 +97,7 @@ const ProjectCard = ({ project, featured = false }) => {
       {/* Content */}
       <div className={`p-5 ${featured ? "sm:p-7" : ""}`}>
         <h3 className={`font-semibold mb-2 text-primary ${featured ? "text-xl sm:text-2xl" : "text-lg"}`}>
-          {project.title}
+          {title}
         </h3>
         <div className="mb-4">
           <p
@@ -101,7 +106,7 @@ const ProjectCard = ({ project, featured = false }) => {
               expanded ? "" : featured ? "line-clamp-3" : "line-clamp-2"
             }`}
           >
-            {project.description}
+            {description}
           </p>
           {isClamped && (
             <button
