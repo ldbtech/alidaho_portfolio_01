@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaRobot, FaTimes, FaPaperPlane, FaRedo, FaChevronDown, FaComments } from 'react-icons/fa';
+import { FaRobot, FaTimes, FaPaperPlane, FaRedo, FaChevronDown, FaComments, FaBriefcase } from 'react-icons/fa';
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,13 +10,15 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hi! I'm Ali's AI career assistant. Ask me anything about his technical skills, projects, background, or availability!",
+      text: "Hi! I'm Ali's AI career assistant. Ask me anything about his skills, projects, or background — or paste a job description and I'll analyze how well Ali fits the role. 📋",
       sender: 'bot'
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFallback, setIsFallback] = useState(false);
+  const [jobFitMode, setJobFitMode] = useState(false);
+  const [jobText, setJobText] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -90,6 +92,53 @@ const ChatBot = () => {
     }
   };
 
+  const handleJobFit = async (text) => {
+    if (!text.trim() || isLoading) return;
+
+    const userMessage = {
+      id: Date.now(),
+      text: `📋 **Job fit check requested**\n\n${text}`,
+      sender: 'user'
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setJobText('');
+    setJobFitMode(false);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'jobfit', jobDescription: text }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      if (data.isFallback) {
+        setIsFallback(true);
+      }
+
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        text: data.text,
+        sender: 'bot'
+      }]);
+    } catch (error) {
+      console.error('Error analyzing job fit:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        text: "Sorry, I couldn't analyze that job description right now. Please try again later!",
+        sender: 'bot'
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     handleSend(inputMessage);
@@ -100,7 +149,7 @@ const ChatBot = () => {
       setMessages([
         {
           id: Date.now(),
-          text: "Hi! I'm Ali's AI career assistant. Ask me anything about his technical skills, projects, background, or availability!",
+          text: "Hi! I'm Ali's AI career assistant. Ask me anything about his skills, projects, or background — or paste a job description and I'll analyze how well Ali fits the role. 📋",
           sender: 'bot'
         }
       ]);
@@ -252,39 +301,89 @@ const ChatBot = () => {
 
             {/* Quick Suggestion Chips */}
             {messages.length === 1 && (
-              <div className="px-4 pb-3 flex flex-wrap gap-1.5 justify-start">
-                {suggestionChips.map((chip, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSend(chip.query)}
-                    className="px-3 py-1.5 bg-surface dark:bg-zinc-900/50 border border-separator/50 dark:border-zinc-800 hover:border-accent/40 dark:hover:border-blue-500/40 hover:bg-surface-tertiary dark:hover:bg-zinc-800 text-secondary rounded-full text-xs font-medium transition-all duration-300 shadow-sm"
-                  >
-                    {chip.label}
-                  </button>
-                ))}
+              <div className="px-4 pb-3 flex flex-col gap-2">
+                <div className="flex flex-wrap gap-1.5 justify-start">
+                  {suggestionChips.map((chip, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSend(chip.query)}
+                      className="px-3 py-1.5 bg-surface dark:bg-zinc-900/50 border border-separator/50 dark:border-zinc-800 hover:border-accent/40 dark:hover:border-blue-500/40 hover:bg-surface-tertiary dark:hover:bg-zinc-800 text-secondary rounded-full text-xs font-medium transition-all duration-300 shadow-sm"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setJobFitMode(true)}
+                  className="w-full px-3 py-2 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 hover:border-blue-500/60 text-blue-500 dark:text-blue-400 rounded-xl text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <FaBriefcase className="text-xs" /> Hiring? Paste a job description to check Ali's fit
+                </button>
               </div>
             )}
 
             {/* Input Bar */}
             <form onSubmit={handleSubmit} className="p-4 border-t border-separator/30 dark:border-zinc-800/50 bg-surface/20 dark:bg-zinc-950/20">
-              <div className="flex gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Ask a question..."
-                  disabled={isLoading}
-                  className="flex-1 bg-surface-secondary dark:bg-zinc-900/80 text-primary rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent border border-separator/45 dark:border-zinc-800/80 placeholder-zinc-500 disabled:opacity-50"
-                />
-                <button
-                  type="submit"
-                  disabled={!inputMessage.trim() || isLoading}
-                  className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-2xl transition-all duration-300 disabled:opacity-40 disabled:hover:bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/15"
-                >
-                  <FaPaperPlane className="text-xs" />
-                </button>
-              </div>
+              {jobFitMode ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <FaBriefcase className="text-xs" /> Job Fit Check
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setJobFitMode(false); setJobText(''); }}
+                      className="text-zinc-400 hover:text-zinc-200 text-xs font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <textarea
+                    value={jobText}
+                    onChange={(e) => setJobText(e.target.value)}
+                    placeholder="Paste the full job description here…"
+                    rows={4}
+                    disabled={isLoading}
+                    autoFocus
+                    className="w-full bg-surface-secondary dark:bg-zinc-900/80 text-primary rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 border border-separator/45 dark:border-zinc-800/80 placeholder-zinc-500 disabled:opacity-50 resize-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleJobFit(jobText)}
+                    disabled={!jobText.trim() || isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-2xl text-sm font-semibold transition-all duration-300 disabled:opacity-40 disabled:hover:bg-blue-600 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15"
+                  >
+                    <FaBriefcase className="text-xs" /> Analyze my fit
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2 items-center">
+                  <button
+                    type="button"
+                    onClick={() => setJobFitMode(true)}
+                    title="Check fit against a job description"
+                    className="shrink-0 w-10 h-10 flex items-center justify-center rounded-2xl bg-surface-secondary dark:bg-zinc-900/80 border border-separator/45 dark:border-zinc-800/80 text-blue-500 hover:bg-blue-500/10 transition-colors"
+                  >
+                    <FaBriefcase className="text-sm" />
+                  </button>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Ask a question..."
+                    disabled={isLoading}
+                    className="flex-1 min-w-0 bg-surface-secondary dark:bg-zinc-900/80 text-primary rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent border border-separator/45 dark:border-zinc-800/80 placeholder-zinc-500 disabled:opacity-50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!inputMessage.trim() || isLoading}
+                    className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-2xl transition-all duration-300 disabled:opacity-40 disabled:hover:bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/15"
+                  >
+                    <FaPaperPlane className="text-xs" />
+                  </button>
+                </div>
+              )}
             </form>
           </motion.div>
         )}

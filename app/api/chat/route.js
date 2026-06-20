@@ -86,10 +86,67 @@ He is currently open to new opportunities!`;
 For hiring or specific inquiries, you can reach him directly at [ali.moh.ldb@gmail.com](mailto:ali.moh.ldb@gmail.com) or connect on [LinkedIn](https://www.linkedin.com/in/alidaho/).`;
 }
 
+// Compact static profile, used as job-fit context when Firebase is unavailable.
+const STATIC_FACTS = `Key Information about Ali:
+- Contact: ali.moh.ldb@gmail.com | LinkedIn: https://www.linkedin.com/in/alidaho/ | GitHub: https://github.com/ldbtech
+- Frontend: React, Next.js, JavaScript, TypeScript, TailwindCSS, HTML/CSS
+- Backend: Node.js, Express, Java, C/C++
+- Databases & Cloud: Firebase (Firestore, Realtime DB, Auth), SQL, PostgreSQL
+- AI & Machine Learning: Python, TensorFlow, PyTorch, OpenCV, Deep Q-Learning, CNNs (AlexNet)
+- Spoken Languages: English, Arabic, French
+- Notable projects: Flikor (iOS roommate-finder app), Reinforcement-Learning Tic-Tac-Toe, Soccer Player Position Prediction, Handwriting Recognition (AlexNet 98.2%), Face Detection (OpenCV), NS-3 Network Simulator, Java Food Ordering web app.`;
+
+const ASSISTANT_PREAMBLE = `You are the AI Career Assistant for Ali Daho Bachir (also known as Ali Dahou), a highly skilled Software Engineer and Full Stack Developer specializing in AI, Machine Learning, and Web/Mobile Applications. Answer questions about Ali's projects, experience, skills, and background in a professional, polite, and helpful manner. Represent Ali in the best possible light.`;
+
+const ASSISTANT_RULES = `Rules for responses:
+- Be concise and professional.
+- Use markdown formatting (bullet points, bold text) where appropriate.
+- Keep the tone warm, welcoming, and helpful.
+- If asked about contact or hiring, provide his email and LinkedIn links.`;
+
+function buildAssistantInstructions(facts) {
+  return `${ASSISTANT_PREAMBLE}\n\n${facts}\n\n${ASSISTANT_RULES}`;
+}
+
+function buildJobFitInstructions(facts) {
+  return `You are an objective, experienced technical recruiter helping a hiring manager assess whether Ali Daho Bachir is a fit for a specific role. Base your evaluation ONLY on Ali's verified profile below — never invent skills or experience he does not have. Be honest and balanced: a credible, realistic assessment is more valuable than hype.
+
+${facts}
+
+The hiring manager will provide a job description. Compare it against Ali's profile and reply in EXACTLY this markdown structure:
+
+**Overall match: <0-100>% — <short verdict>**
+
+**✅ Where Ali fits**
+- Concrete bullets mapping his real skills, projects, and experience to the role's key requirements.
+
+**⚠️ Gaps to consider**
+- Honest bullets on requirements that are not clearly evidenced in his profile.
+
+**📈 How Ali could strengthen his fit**
+- Specific, actionable suggestions (skills to learn or highlight, projects to build, certifications).
+
+**Verdict**
+- A 2–3 sentence professional summary. If it is a solid match, invite the hiring manager to reach out: ali.moh.ldb@gmail.com or https://www.linkedin.com/in/alidaho/.
+
+Additional rules:
+- If the text provided is empty or is clearly not a job description, politely ask for a valid job description instead of guessing.
+- Keep the percentage honest and the response skimmable.`;
+}
+
 export async function POST(req) {
   try {
-    const { messages } = await req.json();
-    if (!messages || !Array.isArray(messages)) {
+    const { messages, mode, jobDescription } = await req.json();
+    const isJobFit = mode === "jobfit";
+
+    if (isJobFit) {
+      if (!jobDescription || !jobDescription.trim()) {
+        return NextResponse.json({
+          text: "Please paste a job description so I can analyze the fit against Ali's profile.",
+          isFallback: false,
+        });
+      }
+    } else if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: "Invalid request payload" }, { status: 400 });
     }
 
@@ -98,6 +155,13 @@ export async function POST(req) {
     if (!apiKey) {
       // Fallback mode: no API key set
       console.warn("GEMINI_API_KEY is not set. Using local fallback assistant.");
+      if (isJobFit) {
+        return NextResponse.json({
+          text:
+            "⚙️ Live job-fit analysis needs the AI to be enabled. In the meantime: Ali's core strengths are full-stack web (React/Next.js, Node.js, TypeScript), AI/ML (Python, TensorFlow, PyTorch, OpenCV) and iOS development. To discuss this role directly, email **ali.moh.ldb@gmail.com** or connect on [LinkedIn](https://www.linkedin.com/in/alidaho/).",
+          isFallback: true,
+        });
+      }
       const lastMessage = messages[messages.length - 1]?.text || "";
       const text = getFallbackResponse(lastMessage);
       return NextResponse.json({
@@ -106,11 +170,8 @@ export async function POST(req) {
       });
     }
 
-    // Call Gemini Developer API
-    const lastUserMessage = messages[messages.length - 1]?.text || "";
-    
-    // Fetch live profile/about data from Firebase to keep chatbot perfectly synced
-    let liveInstructions = SYSTEM_INSTRUCTIONS;
+    // Fetch live profile/about data from Firebase to keep the assistant in sync.
+    let profileFacts = "";
     try {
       const aboutData = await fetchData("about");
       if (aboutData) {
@@ -121,11 +182,7 @@ export async function POST(req) {
         const experiences = (aboutData.experience || []).map(exp => `- ${exp.title} at ${exp.company} (${exp.period}): ${exp.description}`).join('\n');
         const educationList = (aboutData.education || []).map(edu => `- ${edu.degree} at ${edu.school} (${edu.period}): ${edu.description || ''}`).join('\n');
 
-        liveInstructions = `
-You are the AI Career Assistant for Ali Daho Bachir (also known as Ali Dahou), a highly skilled Software Engineer and Full Stack Developer specializing in AI, Machine Learning, and Web/Mobile Applications.
-Your goal is to answer questions about Ali's projects, experience, skills, and background in a professional, polite, and helpful manner. Represent Ali in the best possible light.
-
-Key Information about Ali:
+        profileFacts = `Key Information about Ali:
 1. Contact:
    - Email: ali.moh.ldb@gmail.com
    - LinkedIn: https://www.linkedin.com/in/alidaho/
@@ -148,24 +205,27 @@ ${educationList || "No education history listed yet."}
 
 6. Personality & Highlights:
    - Fun fact: Known as the "Best Striker" on the football field (⚽️).
-   - Strong believer in clean architecture, performance optimization, and premium user experience.
-
-Rules for responses:
-- Be concise and professional.
-- Use markdown formatting (bullet points, bold text) where appropriate.
-- Keep the tone warm, welcoming, and helpful.
-- If asked about contact or hiring, provide his email and LinkedIn links.
-`;
+   - Strong believer in clean architecture, performance optimization, and premium user experience.`;
       }
     } catch (firebaseErr) {
       console.warn("Failed to load dynamic profile info for chatbot, using static fallback instructions.", firebaseErr);
     }
 
-    // Construct chat history in Gemini format
-    const contents = messages.map(m => ({
-      role: m.sender === "user" ? "user" : "model",
-      parts: [{ text: m.text }]
-    }));
+    // Compose the system instruction and conversation based on the mode.
+    let systemText, contents;
+    if (isJobFit) {
+      systemText = buildJobFitInstructions(profileFacts || STATIC_FACTS);
+      contents = [{
+        role: "user",
+        parts: [{ text: `Job description to evaluate Ali against:\n\n${jobDescription}` }]
+      }];
+    } else {
+      systemText = profileFacts ? buildAssistantInstructions(profileFacts) : SYSTEM_INSTRUCTIONS;
+      contents = messages.map(m => ({
+        role: m.sender === "user" ? "user" : "model",
+        parts: [{ text: m.text }]
+      }));
+    }
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -177,11 +237,11 @@ Rules for responses:
         body: JSON.stringify({
           contents: contents,
           systemInstruction: {
-            parts: [{ text: liveInstructions }]
+            parts: [{ text: systemText }]
           },
           generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024
+            temperature: isJobFit ? 0.4 : 0.7,
+            maxOutputTokens: isJobFit ? 1500 : 1024
           }
         })
       }
