@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaDownload, FaEye, FaTimes } from 'react-icons/fa';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const ResumePreview = ({ resumeUrl, resumeName = "Resume", showDownload = true }) => {
+  const { t } = useLanguage();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   if (!resumeUrl) {
@@ -33,7 +35,7 @@ const ResumePreview = ({ resumeUrl, resumeName = "Resume", showDownload = true }
           className="group flex items-center gap-3 px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-apple transition-apple shadow-apple-light"
         >
           <FaEye className="w-5 h-5" />
-          <span className="font-medium">View Resume</span>
+          <span className="font-medium">{t('hero.resume', 'View Resume')}</span>
         </button>
         
         {showDownload && (
@@ -42,7 +44,7 @@ const ResumePreview = ({ resumeUrl, resumeName = "Resume", showDownload = true }
             className="group flex items-center gap-3 px-8 py-4 bg-surface-secondary hover:bg-surface-tertiary text-primary rounded-apple transition-apple shadow-apple-light"
           >
             <FaDownload className="w-5 h-5 group-hover:text-accent transition-apple" />
-            <span className="font-medium">Download PDF</span>
+            <span className="font-medium">{t('hero.download', 'Download PDF')}</span>
           </button>
         )}
       </div>
@@ -81,7 +83,7 @@ const ResumePreview = ({ resumeUrl, resumeName = "Resume", showDownload = true }
                 <iframe
                   src={resumeUrl}
                   className="w-full h-full border-0"
-                  title="Resume Preview"
+                  title={t('resume.preview', 'Resume Preview')}
                 />
               </div>
             </motion.div>

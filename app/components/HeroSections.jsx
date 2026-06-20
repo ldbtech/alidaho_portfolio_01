@@ -7,8 +7,10 @@ import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { fetchProfile, fetchData } from '../services/firebase';
 import ResumePreview from './ResumePreview';
 import LoadingState from './LoadingState';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const HeroSections = () => {
+    const { t } = useLanguage();
     const [profile, setProfile] = useState(null);
     const [about, setAbout] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -132,7 +134,7 @@ const HeroSections = () => {
                     >
                         <span className="inline-flex items-center gap-2 px-4 py-2 bg-surface-secondary/50 backdrop-blur-sm rounded-full border border-surface-secondary/30 text-sm text-secondary font-medium">
                             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            Available for opportunities
+                            {t('hero.status', 'Available for opportunities')}
                         </span>
                     </motion.div>
                 </div>
@@ -196,7 +198,7 @@ const HeroSections = () => {
                         className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white rounded-full transition-all duration-300 hover:scale-[1.03] shadow-2xl hover:shadow-gray-500/25 w-48 sm:w-auto"
                     >
                         <FaGithub className="w-5 h-5" />
-                        <span className="font-semibold">View GitHub</span>
+                        <span className="font-semibold">{t('hero.github', 'View GitHub')}</span>
                     </a>
                     <a
                         href={profile.socialLinks.linkedin}
@@ -205,7 +207,7 @@ const HeroSections = () => {
                         className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full transition-all duration-300 hover:scale-[1.03] shadow-2xl hover:shadow-blue-500/25 w-48 sm:w-auto"
                     >
                         <FaLinkedin className="w-5 h-5" />
-                        <span className="font-semibold">Connect</span>
+                        <span className="font-semibold">{t('hero.linkedin', 'Connect')}</span>
                     </a>
                     <div className="w-48 sm:w-auto flex justify-center">
                         <ResumePreview 

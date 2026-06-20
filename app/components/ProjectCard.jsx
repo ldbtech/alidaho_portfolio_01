@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
 import Image from "next/image";
@@ -12,8 +12,22 @@ export const cardVariants = {
 
 const ProjectCard = ({ project, featured = false }) => {
   const ref = useRef(null);
+  const descRef = useRef(null);
+  const [expanded, setExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+
+  // Detect whether the description is actually truncated so the
+  // toggle only shows when there's more text to reveal.
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el || expanded) return;
+    const check = () => setIsClamped(el.scrollHeight > el.clientHeight + 1);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [project.description, expanded, featured]);
 
   const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [7, -7]), { stiffness: 300, damping: 30 });
   const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-7, 7]), { stiffness: 300, damping: 30 });
@@ -80,9 +94,26 @@ const ProjectCard = ({ project, featured = false }) => {
         <h3 className={`font-semibold mb-2 text-primary ${featured ? "text-xl sm:text-2xl" : "text-lg"}`}>
           {project.title}
         </h3>
-        <p className={`text-secondary mb-4 text-sm leading-relaxed ${featured ? "sm:text-base line-clamp-3" : "line-clamp-2"}`}>
-          {project.description}
-        </p>
+        <div className="mb-4">
+          <p
+            ref={descRef}
+            className={`text-secondary text-sm leading-relaxed ${featured ? "sm:text-base" : ""} ${
+              expanded ? "" : featured ? "line-clamp-3" : "line-clamp-2"
+            }`}
+          >
+            {project.description}
+          </p>
+          {isClamped && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-1 text-accent text-xs font-medium hover:underline focus:outline-none"
+              aria-expanded={expanded}
+            >
+              {expanded ? "Read less" : "Read more"}
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {(project.tags || []).map((tag, index) => (
             <span key={index}

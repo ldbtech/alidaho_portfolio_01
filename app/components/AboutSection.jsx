@@ -189,7 +189,7 @@ const AboutSection = () => {
             </div>
             <div className="space-y-3 text-center sm:text-left">
               <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-semibold uppercase tracking-wider">
-                Full Stack & AI Engineer
+                {t('about.subtitle', 'Full Stack & AI Engineer')}
               </span>
               <h3 className="text-xl sm:text-2xl font-bold text-primary">Ali Daho Bachir</h3>
               <p className="text-secondary text-sm sm:text-base leading-relaxed">
@@ -204,19 +204,19 @@ const AboutSection = () => {
               <span className="block text-2xl font-extrabold text-blue-500">
                 {content.experience.length}+
               </span>
-              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">Roles Held</span>
+              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">{t('about.rolesHeld', 'Roles Held')}</span>
             </div>
             <div>
               <span className="block text-2xl font-extrabold text-emerald-500">
                 9+
               </span>
-              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">Active Projects</span>
+              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">{t('about.activeProjects', 'Active Projects')}</span>
             </div>
             <div>
               <span className="block text-2xl font-extrabold text-indigo-500">
                 {visitorCount || 420}
               </span>
-              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">Profile Visits</span>
+              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">{t('about.profileVisits', 'Profile Visits')}</span>
             </div>
           </div>
         </motion.div>
@@ -234,7 +234,7 @@ const AboutSection = () => {
               <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
                 <FaCode className="text-lg" />
               </div>
-              <h3 className="font-bold text-primary text-base sm:text-lg">Tech Stack</h3>
+              <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.techStack', 'Tech Stack')}</h3>
             </div>
             
             <div className="space-y-3">
@@ -272,7 +272,7 @@ const AboutSection = () => {
           </div>
 
           <p className="text-[11px] text-tertiary mt-4 leading-normal">
-            Ali specializes in full-stack setups, convolutional neural nets, and real-time simulator codebases.
+            {t('about.specialization', 'Ali specializes in full-stack setups, convolutional neural nets, and real-time simulator codebases.')}
           </p>
         </motion.div>
 
@@ -291,7 +291,7 @@ const AboutSection = () => {
                 <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
                   <FaBriefcase className="text-lg" />
                 </div>
-                <h3 className="font-bold text-primary text-base sm:text-lg">Work Experience</h3>
+                <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.workExperience', 'Work Experience')}</h3>
               </div>
 
               {sortedExperiences.length > 0 ? (
@@ -338,7 +338,7 @@ const AboutSection = () => {
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-tertiary">No experience configured.</p>
+                <p className="text-xs text-tertiary">{t('about.noExperience', 'No experience configured.')}</p>
               )}
             </div>
 
@@ -348,7 +348,7 @@ const AboutSection = () => {
                 <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
                   <FaGraduationCap className="text-lg" />
                 </div>
-                <h3 className="font-bold text-primary text-base sm:text-lg">Education</h3>
+                <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.educationLabel', 'Education')}</h3>
               </div>
 
               {sortedEducation.length > 0 ? (
@@ -395,7 +395,7 @@ const AboutSection = () => {
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-tertiary">No education configured.</p>
+                <p className="text-xs text-tertiary">{t('about.noEducation', 'No education configured.')}</p>
               )}
             </div>
           </div>
@@ -414,7 +414,7 @@ const AboutSection = () => {
               <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
                 <FaGlobe className="text-lg" />
               </div>
-              <h3 className="font-bold text-primary text-base sm:text-lg">Languages & Fun</h3>
+              <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.languagesLabel', 'Languages & Fun')}</h3>
             </div>
             
             {/* Languages lists */}
@@ -446,7 +446,7 @@ const AboutSection = () => {
                   );
                 })
               ) : (
-                <p className="text-xs text-tertiary">No languages configured.</p>
+                <p className="text-xs text-tertiary">{t('about.noLanguages', 'No languages configured.')}</p>
               )}
             </div>
           </div>
@@ -457,8 +457,8 @@ const AboutSection = () => {
               <FaFootballBall className="text-amber-500 text-lg animate-spin" style={{ animationDuration: '8s' }} />
             </div>
             <div>
-              <span className="block text-xs font-extrabold text-primary">Best Striker ⚽️</span>
-              <span className="text-[10px] text-tertiary leading-none block">Earned on the local pitch</span>
+              <span className="block text-xs font-extrabold text-primary">{t('about.striker', 'Best Striker ⚽️')}</span>
+              <span className="text-[10px] text-tertiary leading-none block">{t('about.strikerDesc', 'Earned on the local pitch')}</span>
             </div>
           </div>
         </motion.div>
@@ -476,7 +476,7 @@ const AboutSection = () => {
               <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
                 <FaTrophy className="text-lg" />
               </div>
-              <h3 className="font-bold text-primary text-base sm:text-lg">Achievements & Highlights</h3>
+              <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.achievementsLabel', 'Achievements & Highlights')}</h3>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

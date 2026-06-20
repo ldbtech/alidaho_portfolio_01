@@ -26,7 +26,6 @@ export const LANGUAGES = {
   ja: { name: '日本語', flag: '🇯🇵', code: 'ja' },
   ko: { name: '한국어', flag: '🇰🇷', code: 'ko' },
   ar: { name: 'العربية', flag: '🇸🇦', code: 'ar' },
-  hi: { name: 'हिन्दी', flag: '🇮🇳', code: 'hi' }
 };
 
 // Translation files
@@ -45,15 +44,28 @@ const translations = {
       title: 'Full Stack Developer',
       subtitle: 'Building the future with code',
       description: 'Passionate about creating innovative solutions and bringing ideas to life through technology.',
-      github: 'GitHub',
-      linkedin: 'LinkedIn',
-      resume: 'Resume',
+      github: 'View GitHub',
+      linkedin: 'Connect',
+      resume: 'View Resume',
+      download: 'Download PDF',
+      status: 'Available for opportunities',
       languages: 'Languages I Speak'
     },
     
     // About Section
     about: {
       title: 'About Me',
+      subtitle: 'Full Stack & AI Engineer',
+      rolesHeld: 'Roles Held',
+      activeProjects: 'Active Projects',
+      profileVisits: 'Profile Visits',
+      techStack: 'Tech Stack',
+      workExperience: 'Work Experience',
+      educationLabel: 'Education',
+      languagesLabel: 'Languages & Fun',
+      striker: 'Best Striker ⚽️',
+      strikerDesc: 'Earned on the local pitch',
+      achievementsLabel: 'Achievements & Highlights',
       experience: 'Experience',
       education: 'Education',
       extracurricularAndAchievement: 'Extracurricular and Achievement',
@@ -119,15 +131,28 @@ const translations = {
       title: 'Desarrollador Full Stack',
       subtitle: 'Construyendo el futuro con código',
       description: 'Apasionado por crear soluciones innovadoras y dar vida a las ideas a través de la tecnología.',
-      github: 'GitHub',
-      linkedin: 'LinkedIn',
-      resume: 'Currículum',
+      github: 'Ver GitHub',
+      linkedin: 'Conectar',
+      resume: 'Ver Currículum',
+      download: 'Descargar PDF',
+      status: 'Disponible para oportunidades',
       languages: 'Idiomas que Hablo'
     },
     
     // Sección Acerca de
     about: {
       title: 'Acerca de Mí',
+      subtitle: 'Ingeniero Full Stack y de IA',
+      rolesHeld: 'Roles Desempeñados',
+      activeProjects: 'Proyectos Activos',
+      profileVisits: 'Visitas al Perfil',
+      techStack: 'Tecnologías',
+      workExperience: 'Experiencia Laboral',
+      educationLabel: 'Educación',
+      languagesLabel: 'Idiomas y Diversión',
+      striker: 'Mejor Delantero ⚽️',
+      strikerDesc: 'Ganado en el campo local',
+      achievementsLabel: 'Logros y Destacados',
       experience: 'Experiencia',
       education: 'Educación',
       extracurricularAndAchievement: 'Extracurriculares y Logros',
@@ -193,15 +218,28 @@ const translations = {
       title: 'Développeur Full Stack',
       subtitle: 'Construire l\'avenir avec du code',
       description: 'Passionné par la création de solutions innovantes et donner vie aux idées grâce à la technologie.',
-      github: 'GitHub',
-      linkedin: 'LinkedIn',
-      resume: 'CV',
+      github: 'Voir GitHub',
+      linkedin: 'Se connecter',
+      resume: 'Voir le CV',
+      download: 'Télécharger le PDF',
+      status: 'Disponible pour des opportunités',
       languages: 'Langues que je Parle'
     },
     
     // Section À propos
     about: {
       title: 'À propos de Moi',
+      subtitle: 'Ingénieur Full Stack & IA',
+      rolesHeld: 'Postes Occupés',
+      activeProjects: 'Projets Actifs',
+      profileVisits: 'Visites de Profil',
+      techStack: 'Tech Stack',
+      workExperience: 'Expérience Professionnelle',
+      educationLabel: 'Éducation',
+      languagesLabel: 'Langues & Fun',
+      striker: 'Meilleur Buteur ⚽️',
+      strikerDesc: 'Gagné sur le terrain local',
+      achievementsLabel: 'Réalisations & Points Forts',
       experience: 'Expérience',
       education: 'Éducation',
       extracurricularAndAchievement: 'Extracurriculaires et Réalisations',
@@ -250,6 +288,93 @@ const translations = {
     footer: {
       rights: 'Tous droits réservés.',
       built: 'Construit avec Next.js et Tailwind CSS'
+    }
+  },
+
+  ar: {
+    // Navigation
+    home: 'الرئيسية',
+    about: 'من أنا',
+    projects: 'مشاريعي',
+    thoughts: 'أفكاري',
+    contact: 'اتصل بي',
+    admin: 'المشرف',
+    
+    // Hero Section
+    hero: {
+      title: 'مطور ويب متكامل',
+      subtitle: 'بناء المستقبل بالبرمجة',
+      description: 'شغوف بابتكار الحلول البرمجية وتحويل الأفكار إلى واقع ملموس من خلال التكنولوجيا.',
+      github: 'عرض جيت هاب',
+      linkedin: 'اتصال',
+      resume: 'عرض السيرة الذاتية',
+      download: 'تحميل PDF',
+      status: 'متاح لفرص العمل',
+      languages: 'اللغات التي أتحدثها'
+    },
+    
+    // About Section
+    about: {
+      title: 'من أنا',
+      subtitle: 'مهندس مطور متكامل وذكاء اصطناعي',
+      rolesHeld: 'المناصب والمهام',
+      activeProjects: 'المشاريع النشطة',
+      profileVisits: 'زيارات الملف الشخصي',
+      techStack: 'التقنيات المستخدمة',
+      workExperience: 'الخبرة المهنية',
+      educationLabel: 'التعليم والشهادات',
+      languagesLabel: 'اللغات والترفيه',
+      striker: 'أفضل مهاجم ⚽️',
+      strikerDesc: 'تم الحصول عليها في الملعب المحلي',
+      achievementsLabel: 'الإنجازات والنجاحات',
+      experience: 'الخبرة',
+      education: 'التعليم',
+      extracurricularAndAchievement: 'الأنشطة الإضافية والإنجازات',
+      programming: 'البرمجة',
+      skills: 'المهارات',
+      aiTools: 'أدوات الذكاء الاصطناعي',
+      relevantCoursework: 'المقررات ذات الصلة',
+      academicExcellence: 'التميز الأكاديمي',
+      knowledgeGrowth: 'نمو المعرفة',
+      skillDevelopment: 'تطوير المهارات',
+      noEducation: 'لم يتم إضافة تعليم بعد',
+      noEducationDesc: 'أضف تعليمك في لوحة التحكم لعرض إنجازاتك الأكاديمية!',
+      noSkills: 'لا توجد مهارات بعد',
+      noSkillsDesc: 'أضف مهاراتك في لوحة التحكم لعرض خبرتك!',
+      noExtracurricularAndAchievement: 'لا توجد أنشطة إضافية أو إنجازات بعد',
+      noExtracurricularAndAchievementDesc: 'أضف أنشطتك وإنجازاتك في لوحة التحكم لعرض نجاحاتك!',
+      noProgramming: 'لا توجد لغات برمجة بعد',
+      noProgrammingDesc: 'أضف لغات البرمجة ومستويات الكفاءة في لوحة التحكم!',
+      noAITools: 'لا توجد أدوات ذكاء اصطناعي بعد',
+      noAIToolsDesc: 'أضف أدوات الذكاء الاصطناعي في لوحة التحكم لعرض خبراتك!'
+    },
+    
+    // Projects Section
+    projects: {
+      title: 'مشاريعي',
+      viewProject: 'عرض المشروع',
+      viewCode: 'عرض الكود',
+      noProjects: 'لا توجد مشاريع بعد',
+      noProjectsDesc: 'أضف مشاريعك في لوحة التحكم لعرض أعمالك!'
+    },
+    
+    // Contact Section
+    contact: {
+      title: 'اتصل بي',
+      subtitle: 'دعنا نعمل معاً لتحويل أفكارك إلى حقيقة',
+      name: 'الاسم',
+      email: 'البريد الإلكتروني',
+      message: 'الرسالة',
+      send: 'إرسال الرسالة',
+      sending: 'جاري الإرسال...',
+      success: 'تم إرسال الرسالة بنجاح!',
+      error: 'فشل إرسال الرسالة. يرجى المحاولة مرة أخرى.'
+    },
+    
+    // Footer
+    footer: {
+      rights: 'جميع الحقوق محفوظة.',
+      built: 'تم البناء بواسطة Next.js و Tailwind CSS'
     }
   }
 };
@@ -307,6 +432,14 @@ export const LanguageProvider = ({ children }) => {
 
     loadLanguages();
   }, []);
+
+  // Listen for language changes to toggle document RTL direction
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = language;
+    }
+  }, [language]);
 
   const changeLanguage = (newLanguage) => {
     if (availableLanguages[newLanguage]) {

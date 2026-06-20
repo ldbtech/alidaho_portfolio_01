@@ -21,13 +21,15 @@ const ProjectsSection = () => {
       try {
         const data = await fetchData("projects");
         if (data) {
-          const arr = Object.values(data).map((project) => ({
-            ...project,
-            tags: project.tags || [],
-            imgUrl: project.imgUrl || "/placeholder.jpg",
-            gitUrl: project.gitUrl || "",
-            previewUrl: project.previewUrl || "",
-          }));
+          const arr = Object.values(data)
+            .map((project) => ({
+              ...project,
+              tags: project.tags || [],
+              imgUrl: project.imgUrl || "/placeholder.jpg",
+              gitUrl: project.gitUrl || "",
+              previewUrl: project.previewUrl || "",
+            }))
+            .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
           setProjects(arr);
         }
       } catch {

@@ -22,7 +22,11 @@ const ProjectManager = () => {
         try {
             const data = await fetchData('projects');
             if (data) {
-                setProjects(Object.values(data));
+                setProjects(
+                    Object.values(data).sort(
+                        (a, b) => (Number(b.id) || 0) - (Number(a.id) || 0)
+                    )
+                );
             }
         } catch (err) {
             setError('Failed to load projects');
