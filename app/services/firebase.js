@@ -253,6 +253,113 @@ export const saveAbout = async (data) => {
   }
 };
 
+// Freelance Configuration Management
+export const fetchFreelanceConfig = async () => {
+  try {
+    console.log('Fetching freelance config...');
+    const freelanceRef = ref(database, 'freelance');
+    const snapshot = await get(freelanceRef);
+    const data = snapshot.val();
+    console.log('Freelance config received:', data);
+    
+    if (!data) {
+      console.log('No freelance config found, using default values');
+      return {
+        bio: "I build fast, beautiful, and secure SaaS products, AI automated workflows, and custom web applications.",
+        hourlyRate: "50",
+        projectStartingPrice: "1500",
+        status: "Accepting Freelance Projects",
+        services: [
+          {
+            id: "1",
+            title: "SaaS MVP Development",
+            description: "Go from concept to launching your full-stack product in 3-4 weeks. Built with modern, scalable web tech.",
+            price: "2500",
+            duration: "3-4 weeks",
+            features: ["Custom Database Design", "User Authentication & Roles", "Stripe Subscription Payment Flow", "Premium Responsive UI"],
+            icon: "rocket"
+          },
+          {
+            id: "2",
+            title: "AI Automation & LLMs",
+            description: "Integrate intelligent APIs, AI agents, and workflows that automate manual work and save hours.",
+            price: "1500",
+            duration: "1-2 weeks",
+            features: ["OpenAI / Gemini integrations", "Custom AI Agent creation", "Automated pipelines & scripts", "API integrations"],
+            icon: "brain"
+          },
+          {
+            id: "3",
+            title: "Premium Web App",
+            description: "High-performance, beautifully designed web apps optimized for SEO, speed, and mobile responsiveness.",
+            price: "1000",
+            duration: "1-2 weeks",
+            features: ["React/Next.js dynamic builds", "Tailwind clean CSS layouts", "SEO Meta Optimization", "Dynamic CMS integrations"],
+            icon: "code"
+          }
+        ],
+        process: [
+          {
+            id: "1",
+            stepNumber: "1",
+            title: "Alignment & Pricing",
+            description: "We define scope, pricing packages, deliverables, and timeline."
+          },
+          {
+            id: "2",
+            stepNumber: "2",
+            title: "Weekly Delivery",
+            description: "Regular updates on staging server. You see the product evolve week-by-week."
+          },
+          {
+            id: "3",
+            stepNumber: "3",
+            title: "QA & Handover",
+            description: "Testing features, final host deployment, and all codebase ownership handoff."
+          }
+        ]
+      };
+    }
+    
+    // Support either array or dictionary format from database
+    const servicesList = data.services
+      ? (Array.isArray(data.services) ? data.services : Object.values(data.services))
+      : [];
+
+    const processList = data.process
+      ? (Array.isArray(data.process) ? data.process : Object.values(data.process))
+      : [];
+
+    return {
+      bio: data.bio || '',
+      hourlyRate: data.hourlyRate || '',
+      projectStartingPrice: data.projectStartingPrice || '',
+      status: data.status || 'Accepting Freelance Projects',
+      services: servicesList,
+      process: processList.sort((a, b) => (Number(a.stepNumber) || 0) - (Number(b.stepNumber) || 0))
+    };
+  } catch (error) {
+    console.error("Error fetching freelance config:", error);
+    throw new Error(`Failed to fetch freelance config: ${error.message}`);
+  }
+};
+
+export const saveFreelanceConfig = async (freelanceData) => {
+  try {
+    if (!auth.currentUser) {
+      throw new Error("Authentication required");
+    }
+
+    const freelanceRef = ref(database, 'freelance');
+    await set(freelanceRef, freelanceData);
+    console.log("Freelance configuration saved successfully");
+    return true;
+  } catch (error) {
+    console.error("Error in saveFreelanceConfig:", error);
+    throw new Error(`Failed to save freelance config: ${error.message}`);
+  }
+};
+
 // Visitor tracking functions
 export const incrementVisitorCount = async () => {
   try {

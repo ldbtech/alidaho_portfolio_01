@@ -3,6 +3,7 @@ import './globals.css';
 import Script from 'next/script';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { PortfolioModeProvider } from './contexts/PortfolioModeContext';
 import DynamicFavicon from './components/DynamicFavicon';
 import ScrollProgress from './components/ScrollProgress';
 import ChatBot from './components/ChatBot';
@@ -45,7 +46,9 @@ export default function RootLayout({ children }) {
         <DynamicFavicon />
         <ThemeProvider>
           <LanguageProvider>
-            {children}
+            <PortfolioModeProvider>
+              {children}
+            </PortfolioModeProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

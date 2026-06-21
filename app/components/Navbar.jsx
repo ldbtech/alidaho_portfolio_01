@@ -35,6 +35,7 @@ const Navbar = () => {
     ];
     const [navbarOpen, setNavbarOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
     const [profile, setProfile] = useState(null);
     const [imageError, setImageError] = useState(false);
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -55,15 +56,22 @@ const Navbar = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            const scrolledAmount = window.scrollY > 10;
-            if (scrolledAmount !== scrolled) {
-                setScrolled(scrolledAmount);
+            const isHome = window.location.pathname === '/';
+            const currentScroll = window.scrollY;
+            
+            setScrolled(currentScroll > 10);
+            
+            if (isHome) {
+                setIsVisible(currentScroll > 200);
+            } else {
+                setIsVisible(true);
             }
         };
 
+        handleScroll();
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [scrolled]);
+    }, []);
 
     const handleImageError = () => {
         console.error('Failed to load logo image');
@@ -72,14 +80,14 @@ const Navbar = () => {
 
     return (
         <motion.nav 
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: isVisible ? 0 : -100, opacity: isVisible ? 1 : 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
                 scrolled 
                     ? "bg-surface-secondary/80 dark:bg-[#121212]/90 backdrop-blur-xl border-b border-separator/30 dark:border-zinc-800 shadow-lg" 
                     : "bg-transparent"
-            }`}
+            } ${!isVisible ? "pointer-events-none" : ""}`}
         >
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
                 <div className="flex items-center justify-between">

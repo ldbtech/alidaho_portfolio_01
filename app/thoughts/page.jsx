@@ -6,6 +6,7 @@ import { ref, onValue, get } from 'firebase/database';
 import { database } from '../services/firebase';
 import Link from 'next/link';
 import { FaCalendarAlt, FaTag, FaArrowLeft, FaClock } from 'react-icons/fa';
+import { usePortfolioMode } from '../contexts/PortfolioModeContext';
 
 const ThoughtsPage = () => {
   const [thoughts, setThoughts] = useState([]);
@@ -78,9 +79,19 @@ const ThoughtsPage = () => {
 
   const categories = ['all', 'AI', 'Software Development', 'Technology', 'Career'];
 
+  const { portfolioMode } = usePortfolioMode();
+
+  const modeFilteredThoughts = thoughts.filter((thought) => {
+    if (portfolioMode === 'freelance') {
+      return !thought.targetMode || thought.targetMode === 'both' || thought.targetMode === 'freelance';
+    } else {
+      return !thought.targetMode || thought.targetMode === 'both' || thought.targetMode === 'job';
+    }
+  });
+
   const filteredThoughts = selectedCategory === 'all'
-    ? thoughts
-    : thoughts.filter(thought => thought.category === selectedCategory);
+    ? modeFilteredThoughts
+    : modeFilteredThoughts.filter(thought => thought.category === selectedCategory);
 
   if (loading) {
     return (

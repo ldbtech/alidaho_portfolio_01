@@ -4,46 +4,78 @@ import GithubIcon from "../../public/github-icon.svg";
 import LinkedinIcon from "../../public/linkedin-icon.svg";
 import Link from "next/link";
 import Image from "next/image";
-import emailjs from '@emailjs/browser';
+import { usePortfolioMode } from "../contexts/PortfolioModeContext";
+import { useLanguage } from "../contexts/LanguageContext";
+import { fetchFreelanceConfig } from "../services/firebase";
 
 const EmailSection = () => {
+    const { t } = useLanguage();
+    const { isFreelance } = usePortfolioMode();
     const [emailSubmitted, setEmailSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
-    const formRef = useRef();
+    const [projectType, setProjectType] = useState("SaaS MVP Development");
+    const [projectBudget, setProjectBudget] = useState("$2,000 - $5,000");
+    const [services, setServices] = useState([]);
 
     useEffect(() => {
-        // Initialize EmailJS with your public key
-        const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-        emailjs.init(publicKey);
-    }, []);
+        if (isFreelance) {
+            const loadServices = async () => {
+                try {
+                    const data = await fetchFreelanceConfig();
+                    if (data && data.services && data.services.length > 0) {
+                        setServices(data.services);
+                        setProjectType(data.services[0].title);
+                    }
+                } catch (error) {
+                    console.error("Error loading freelance services for contact form:", error);
+                }
+            };
+            loadServices();
+        }
+    }, [isFreelance]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setError("");
 
+        const formData = new FormData(e.target);
+        const name = formData.get("name");
+        const email = formData.get("email");
+        const message = formData.get("message");
+        const subject = formData.get("subject") || "";
+
+        const payload = {
+            name,
+            email,
+            message,
+            isFreelance,
+            ...(isFreelance 
+                ? { projectType, projectBudget } 
+                : { subject }
+            )
+        };
+
         try {
-            const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-            const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
-            const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+            const response = await fetch("/api/contact", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
 
-            const result = await emailjs.sendForm(
-                serviceId,
-                templateId,
-                formRef.current,
-                publicKey
-            );
-
-            if (result.text === 'OK') {
+            if (response.ok) {
                 setEmailSubmitted(true);
                 e.target.reset();
             } else {
-                throw new Error('Failed to send email');
+                const result = await response.json();
+                throw new Error(result.error || "Failed to send message");
             }
         } catch (error) {
-            console.error('Error sending email:', error);
-            setError("Failed to send message. Please try again.");
+            console.error("Error sending email:", error);
+            setError(error.message || t("contact.error", "Failed to send message. Please try again."));
         } finally {
             setIsLoading(false);
         }
@@ -54,15 +86,18 @@ const EmailSection = () => {
             id="contact"
             className="grid grid-cols-1 lg:grid-cols-2 my-8 sm:my-12 py-12 sm:py-16 lg:py-24 gap-8 lg:gap-4 relative px-4 sm:px-6 text-primary"
         >
-            <div className="hidden dark:block bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 to-transparent rounded-full h-60 w-60 sm:h-80 sm:w-80 z-0 blur-lg absolute top-3/4 -left-4 transform -translate-x-1/2 -translate-1/2"></div>
+            <div className={`hidden dark:block bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 to-transparent rounded-full h-60 w-60 sm:h-80 sm:w-80 z-0 blur-lg absolute top-3/4 -left-4 transform -translate-x-1/2 -translate-1/2 transition-colors duration-500 ${
+                isFreelance ? 'from-emerald-900/10' : 'from-blue-900/10'
+            }`}></div>
             <div className="z-10 flex flex-col justify-center">
                 <h5 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-primary my-2">
-                    Let&apos;s Connect
+                    {isFreelance ? t('contact.titleFreelance', "Let's Build Your Project") : t('contact.title', "Let's Connect")}
                 </h5>
                 <p className="text-secondary mb-6 max-w-xl text-base sm:text-lg leading-relaxed">
-                    I&apos;m currently looking for new opportunities, my inbox is always
-                    open. Whether you have a question or just want to say hi, I&apos;ll
-                    try my best to get back to you!
+                    {isFreelance 
+                        ? t('contact.descFreelance', "Have an idea for a SaaS MVP, dynamic web application, or custom AI system? Fill out the intake form to get a quick estimate and kickstart development!") 
+                        : t('contact.desc', "I'm currently looking for new opportunities, my inbox is always open. Whether you have a question or just want to say hi, I'll try my best to get back to you!")
+                    }
                 </p>
                 <div className="socials flex flex-row gap-3">
                     <Link href="https://github.com/ldbtech" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-separator dark:border-zinc-800 bg-transparent hover:bg-surface-secondary transition-colors shadow-sm">
@@ -77,13 +112,17 @@ const EmailSection = () => {
                 {emailSubmitted ? (
                     <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-3xl p-6 text-center shadow-md">
                         <p className="text-green-700 dark:text-green-400 font-semibold text-sm sm:text-base">
-                            Thank you for your message! I&apos;ll get back to you soon.
+                            {isFreelance 
+                                ? t('contact.successFreelance', "Thank you! I have received your project details and will send over a proposal within 24 hours.")
+                                : t('contact.success', "Thank you for your message! I'll get back to you soon.")
+                            }
                         </p>
                     </div>
                 ) : (
                     <form
-                        ref={formRef}
-                        className="flex flex-col space-y-5 sm:space-y-6 bg-glass border border-separator/40 dark:border-zinc-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl"
+                        className={`flex flex-col space-y-5 sm:space-y-6 bg-glass border border-separator/40 dark:border-zinc-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl transition-all duration-500 ${
+                            isFreelance ? 'hover:border-emerald-500/25' : 'hover:border-blue-500/25'
+                        }`}
                         onSubmit={handleSubmit}
                     >
                         <div>
@@ -91,7 +130,7 @@ const EmailSection = () => {
                                 htmlFor="name"
                                 className="block mb-2 text-sm font-semibold text-secondary"
                             >
-                                Your Name
+                                {t('contact.name', 'Your Name')}
                             </label>
                             <input
                                 name="name"
@@ -99,7 +138,7 @@ const EmailSection = () => {
                                 id="name"
                                 required
                                 className="bg-surface-secondary/40 dark:bg-[#121215]/40 border border-separator/50 dark:border-zinc-800/60 text-primary placeholder-tertiary text-sm rounded-2xl block w-full p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
-                                placeholder="Your Name"
+                                placeholder={t('contact.namePlaceholder', 'Your Name')}
                             />
                         </div>
                         <div>
@@ -107,7 +146,7 @@ const EmailSection = () => {
                                 htmlFor="email"
                                 className="block mb-2 text-sm font-semibold text-secondary"
                             >
-                                Your email
+                                {t('contact.email', 'Your email')}
                             </label>
                             <input
                                 name="email"
@@ -118,35 +157,86 @@ const EmailSection = () => {
                                 placeholder="example@domain.com"
                             />
                         </div>
-                        <div>
-                            <label
-                                htmlFor="subject"
-                                className="block text-sm mb-2 font-semibold text-secondary"
-                            >
-                                Subject
-                            </label>
-                            <input
-                                name="subject"
-                                type="text"
-                                id="subject"
-                                required
-                                className="bg-surface-secondary/40 dark:bg-[#121215]/40 border border-separator/50 dark:border-zinc-800/60 text-primary placeholder-tertiary text-sm rounded-2xl block w-full p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
-                                placeholder="Just saying hi"
-                            />
-                        </div>
+
+                        {isFreelance ? (
+                            /* Freelance custom fields */
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block mb-2 text-sm font-semibold text-secondary">
+                                        {t('contact.projectType', 'Project Type')}
+                                    </label>
+                                    <select
+                                        value={projectType}
+                                        onChange={(e) => setProjectType(e.target.value)}
+                                        className="bg-surface-secondary/40 dark:bg-[#121215]/40 border border-separator/50 dark:border-zinc-800/60 text-primary text-sm rounded-2xl block w-full p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all cursor-pointer"
+                                    >
+                                        {services.length > 0 ? (
+                                            services.map((service) => (
+                                                <option key={service.id || service.title} value={service.title}>
+                                                    {service.title}
+                                                </option>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <option value="SaaS MVP Development">SaaS MVP Development</option>
+                                                <option value="AI Automation & LLMs">AI Automation & LLMs</option>
+                                                <option value="Premium Web App">Premium Web App</option>
+                                                <option value="Custom API / Integration">Custom API / Integration</option>
+                                            </>
+                                        )}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block mb-2 text-sm font-semibold text-secondary">
+                                        {t('contact.projectBudget', 'Estimated Budget')}
+                                    </label>
+                                    <select
+                                        value={projectBudget}
+                                        onChange={(e) => setProjectBudget(e.target.value)}
+                                        className="bg-surface-secondary/40 dark:bg-[#121215]/40 border border-separator/50 dark:border-zinc-800/60 text-primary text-sm rounded-2xl block w-full p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all cursor-pointer"
+                                    >
+                                        <option value="Under $1,000">Under $1,000</option>
+                                        <option value="$1,000 - $2,000">$1,000 - $2,000</option>
+                                        <option value="$2,000 - $5,000">$2,000 - $5,000</option>
+                                        <option value="$5,000+">$5,000+</option>
+                                    </select>
+                                </div>
+                            </div>
+                        ) : (
+                            /* Career mode standard subject */
+                            <div>
+                                <label
+                                    htmlFor="subject"
+                                    className="block text-sm mb-2 font-semibold text-secondary"
+                                >
+                                    {t('contact.subject', 'Subject')}
+                                </label>
+                                <input
+                                    name="subject"
+                                    type="text"
+                                    id="subject"
+                                    required
+                                    className="bg-surface-secondary/40 dark:bg-[#121215]/40 border border-separator/50 dark:border-zinc-800/60 text-primary placeholder-tertiary text-sm rounded-2xl block w-full p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
+                                    placeholder={t('contact.subjectPlaceholder', 'Just saying hi')}
+                                />
+                            </div>
+                        )}
+
                         <div>
                             <label
                                 htmlFor="message"
                                 className="block text-sm mb-2 font-semibold text-secondary"
                             >
-                                Message
+                                {isFreelance ? t('contact.messageFreelance', 'Project Requirements Description') : t('contact.message', 'Message')}
                             </label>
                             <textarea
                                 name="message"
                                 id="message"
                                 required
-                                className="bg-surface-secondary/40 dark:bg-[#121215]/40 border border-separator/50 dark:border-zinc-800/60 text-primary placeholder-tertiary text-sm rounded-2xl block w-full p-4 resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all"
-                                placeholder="Let's talk about..."
+                                className={`bg-surface-secondary/40 dark:bg-[#121215]/40 border border-separator/50 dark:border-zinc-800/60 text-primary placeholder-tertiary text-sm rounded-2xl block w-full p-4 resize-none shadow-sm focus:outline-none focus:ring-2 transition-all ${
+                                    isFreelance ? 'focus:ring-emerald-500/40 focus:border-emerald-500' : 'focus:ring-accent/40 focus:border-accent'
+                                }`}
+                                placeholder={isFreelance ? t('contact.messageFreelancePlaceholder', "Tell me about the product you want to build...") : t('contact.messagePlaceholder', "Let's talk about...")}
                                 rows="4"
                             />
                         </div>
@@ -158,11 +248,15 @@ const EmailSection = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 px-6 rounded-2xl w-full transition-all duration-300 text-sm sm:text-base shadow-lg shadow-blue-500/15 hover:shadow-blue-500/25 ${
+                            className={`font-semibold py-3.5 px-6 rounded-2xl w-full transition-all duration-300 text-sm sm:text-base shadow-lg ${
+                                isFreelance 
+                                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/15 hover:shadow-emerald-500/25'
+                                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/15 hover:shadow-blue-500/25'
+                            } ${
                                 isLoading ? "opacity-50 cursor-not-allowed" : ""
                             }`}
                         >
-                            {isLoading ? "Sending..." : "Send Message"}
+                            {isLoading ? t('contact.sending', 'Sending...') : (isFreelance ? t('contact.sendFreelance', 'Submit Inquiry') : t('contact.send', 'Send Message'))}
                         </button>
                     </form>
                 )}

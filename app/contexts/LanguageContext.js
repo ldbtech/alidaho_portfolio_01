@@ -38,6 +38,18 @@ const translations = {
     thoughts: 'Thoughts',
     contact: 'Contact',
     admin: 'Admin',
+    mode: {
+      career: 'Career',
+      freelance: 'Freelance'
+    },
+    gate: {
+      careerTitle: 'Career Mode',
+      careerDesc: "I am a recruiter, hiring manager, or employer looking to review Ali's full-time employment, resume, and qualifications.",
+      careerCTA: 'Enter Career Portfolio',
+      freelanceTitle: 'Freelance Studio',
+      freelanceDesc: 'I am a client, founder, or project stakeholder looking to hire Ali, a US-based developer, on contract to build an MVP, automation, or custom software.',
+      freelanceCTA: 'Enter Freelance Studio'
+    },
     
     // Hero Section
     hero: {
@@ -49,6 +61,9 @@ const translations = {
       resume: 'View Resume',
       download: 'Download PDF',
       status: 'Available for opportunities',
+      statusFreelance: 'Accepting Freelance Projects • Based in the US 🇺🇸',
+      freelanceCTA: 'Start a Project',
+      servicesCTA: 'View Services',
       languages: 'Languages I Speak'
     },
     
@@ -62,6 +77,12 @@ const translations = {
       techStack: 'Tech Stack',
       workExperience: 'Work Experience',
       educationLabel: 'Education',
+      titleFreelance: 'Freelance Studio',
+      subtitleFreelance: 'US-Based Full-Stack Studio',
+      hourlyRate: 'Hourly Rate',
+      startingPrice: 'Project Min',
+      freelanceServices: 'Services & Packages',
+      howIWork: 'How I Work',
       languagesLabel: 'Languages & Fun',
       striker: 'Best Striker ⚽️',
       strikerDesc: 'Earned on the local pitch',
@@ -107,6 +128,14 @@ const translations = {
       send: 'Send Message',
       sending: 'Sending...',
       success: 'Message sent successfully!',
+      successFreelance: 'Thank you! I have received your project details and will send over a proposal within 24 hours.',
+      projectType: 'Project Type',
+      projectBudget: 'Estimated Budget',
+      titleFreelance: "Let's Build Your Project",
+      descFreelance: 'Have an idea for a SaaS MVP, dynamic web application, or custom AI system? Fill out the intake form to get a quick estimate and kickstart development!',
+      messageFreelance: 'Project Requirements Description',
+      messageFreelancePlaceholder: 'Tell me about the product you want to build...',
+      sendFreelance: 'Submit Inquiry',
       error: 'Failed to send message. Please try again.'
     },
     
@@ -125,6 +154,18 @@ const translations = {
     thoughts: 'Pensamientos',
     contact: 'Contacto',
     admin: 'Admin',
+    mode: {
+      career: 'Trayectoria',
+      freelance: 'Freelance'
+    },
+    gate: {
+      careerTitle: 'Trayectoria Profesional',
+      careerDesc: "Soy un reclutador, gerente de contratación o empleador que busca revisar el empleo de tiempo completo, el currículum y las calificaciones de Ali.",
+      careerCTA: 'Ver Portafolio Profesional',
+      freelanceTitle: 'Estudio Freelance',
+      freelanceDesc: 'Soy un cliente, fundador o parte interesada del proyecto que busca contratar a Ali, un desarrollador establecido en EE. UU., por contrato para crear un MVP, automatización o software personalizado.',
+      freelanceCTA: 'Entrar al Estudio Freelance'
+    },
     
     // Sección Hero
     hero: {
@@ -136,6 +177,9 @@ const translations = {
       resume: 'Ver Currículum',
       download: 'Descargar PDF',
       status: 'Disponible para oportunidades',
+      statusFreelance: 'Aceptando Proyectos Freelance • Ubicado en EE. UU. 🇺🇸',
+      freelanceCTA: 'Iniciar Proyecto',
+      servicesCTA: 'Ver Servicios',
       languages: 'Idiomas que Hablo'
     },
     
@@ -149,6 +193,12 @@ const translations = {
       techStack: 'Tecnologías',
       workExperience: 'Experiencia Laboral',
       educationLabel: 'Educación',
+      titleFreelance: 'Estudio Freelance',
+      subtitleFreelance: 'Estudio Full-Stack en EE. UU.',
+      hourlyRate: 'Tarifa por Hora',
+      startingPrice: 'Inicio de Proyecto',
+      freelanceServices: 'Servicios y Paquetes',
+      howIWork: 'Cómo Trabajo',
       languagesLabel: 'Idiomas y Diversión',
       striker: 'Mejor Delantero ⚽️',
       strikerDesc: 'Ganado en el campo local',
@@ -194,6 +244,14 @@ const translations = {
       send: 'Enviar Mensaje',
       sending: 'Enviando...',
       success: '¡Mensaje enviado exitosamente!',
+      successFreelance: '¡Gracias! He recibido los detalles de tu proyecto y te enviaré una propuesta en un plazo de 24 horas.',
+      projectType: 'Tipo de Proyecto',
+      projectBudget: 'Presupuesto Estimado',
+      titleFreelance: 'Construyamos tu Proyecto',
+      descFreelance: '¿Tienes una idea para un MVP de SaaS, una aplicación web dinámica o un sistema de IA personalizado? ¡Completa el formulario para obtener un presupuesto rápido!',
+      messageFreelance: 'Descripción de los Requisitos del Proyecto',
+      messageFreelancePlaceholder: 'Cuéntame sobre el producto que deseas construir...',
+      sendFreelance: 'Enviar Solicitud',
       error: 'Error al enviar mensaje. Por favor, inténtalo de nuevo.'
     },
     
@@ -212,6 +270,18 @@ const translations = {
     thoughts: 'Pensées',
     contact: 'Contact',
     admin: 'Admin',
+    mode: {
+      career: 'Carrière',
+      freelance: 'Freelance'
+    },
+    gate: {
+      careerTitle: 'Mode Carrière',
+      careerDesc: "Je suis un recruteur, un responsable du recrutement ou un employeur qui souhaite examiner l'emploi à plein temps, le CV et les qualifications d'Ali.",
+      careerCTA: 'Entrer dans le Portefeuille Carrière',
+      freelanceTitle: 'Studio Freelance',
+      freelanceDesc: 'Je suis un client, un fondateur ou une partie prenante au projet qui souhaite embaucher Ali, un développeur basé aux États-Unis, sous contrat pour créer un MVP, une automatisation ou un logiciel personnalisé.',
+      freelanceCTA: 'Entrer dans le Studio Freelance'
+    },
     
     // Section Hero
     hero: {
@@ -223,6 +293,9 @@ const translations = {
       resume: 'Voir le CV',
       download: 'Télécharger le PDF',
       status: 'Disponible pour des opportunités',
+      statusFreelance: 'Disponible pour Projets Freelance • Basé aux États-Unis 🇺🇸',
+      freelanceCTA: 'Démarrer un Projet',
+      servicesCTA: 'Voir les Services',
       languages: 'Langues que je Parle'
     },
     
@@ -236,6 +309,12 @@ const translations = {
       techStack: 'Tech Stack',
       workExperience: 'Expérience Professionnelle',
       educationLabel: 'Éducation',
+      titleFreelance: 'Studio Freelance',
+      subtitleFreelance: 'Studio Full-Stack basé aux États-Unis',
+      hourlyRate: 'Tarif Horaire',
+      startingPrice: 'Début de Projet',
+      freelanceServices: 'Services & Forfaits',
+      howIWork: 'Comment Je Travaille',
       languagesLabel: 'Langues & Fun',
       striker: 'Meilleur Buteur ⚽️',
       strikerDesc: 'Gagné sur le terrain local',
@@ -281,6 +360,14 @@ const translations = {
       send: 'Envoyer le Message',
       sending: 'Envoi en cours...',
       success: 'Message envoyé avec succès !',
+      successFreelance: "Merci ! J'ai bien reçu les détails de votre projet et je vous enverrai une proposition sous 24 heures.",
+      projectType: 'Type de Projet',
+      projectBudget: 'Budget Estimé',
+      titleFreelance: 'Construisons Votre Projet',
+      descFreelance: "Vous avez une idée de MVP SaaS, d'application web dynamique ou de système d'IA personnalisé ? Remplissez le formulaire pour obtenir une estimation rapide !",
+      messageFreelance: 'Description des Besoins du Projet',
+      messageFreelancePlaceholder: 'Parlez-moi du produit que vous souhaitez créer...',
+      sendFreelance: 'Soumettre la Demande',
       error: 'Échec de l\'envoi du message. Veuillez réessayer.'
     },
     
@@ -299,6 +386,18 @@ const translations = {
     thoughts: 'أفكاري',
     contact: 'اتصل بي',
     admin: 'المشرف',
+    mode: {
+      career: 'المسار المهني',
+      freelance: 'العمل الحر'
+    },
+    gate: {
+      careerTitle: 'المسار المهني',
+      careerDesc: 'أنا مسؤول توظيف، أو مدير توظيف، أو صاحب عمل أتطلع إلى مراجعة وظيفة علي بدوام كامل، وسيرته الذاتية، ومؤهلاته.',
+      careerCTA: 'دخول الملف المهني',
+      freelanceTitle: 'استوديو العمل الحر',
+      freelanceDesc: 'أنا عميل، أو مؤسس، أو صاحب مشروع أتطلع إلى تعيين علي، وهو مطور مقيم في الولايات المتحدة، بموجب عقد لبناء MVP، أو الأتمتة، أو البرامج المخصصة.',
+      freelanceCTA: 'دخول استوديو العمل الحر'
+    },
     
     // Hero Section
     hero: {
@@ -310,6 +409,9 @@ const translations = {
       resume: 'عرض السيرة الذاتية',
       download: 'تحميل PDF',
       status: 'متاح لفرص العمل',
+      statusFreelance: 'متاح لمشاريع العمل الحر • مقيم في الولايات المتحدة 🇺🇸',
+      freelanceCTA: 'ابدأ مشروعك',
+      servicesCTA: 'عرض الخدمات',
       languages: 'اللغات التي أتحدثها'
     },
     
@@ -323,6 +425,12 @@ const translations = {
       techStack: 'التقنيات المستخدمة',
       workExperience: 'الخبرة المهنية',
       educationLabel: 'التعليم والشهادات',
+      titleFreelance: 'استوديو العمل الحر',
+      subtitleFreelance: 'استوديو تطوير متكامل بالولايات المتحدة',
+      hourlyRate: 'سعر الساعة',
+      startingPrice: 'بداية المشروع',
+      freelanceServices: 'الخدمات والباقات',
+      howIWork: 'طريقة العمل',
       languagesLabel: 'اللغات والترفيه',
       striker: 'أفضل مهاجم ⚽️',
       strikerDesc: 'تم الحصول عليها في الملعب المحلي',
@@ -368,6 +476,14 @@ const translations = {
       send: 'إرسال الرسالة',
       sending: 'جاري الإرسال...',
       success: 'تم إرسال الرسالة بنجاح!',
+      successFreelance: 'شكراً لك! لقد تلقيت تفاصيل مشروعك وسأرسل لك مقترحاً خلال 24 ساعة.',
+      projectType: 'نوع المشروع',
+      projectBudget: 'الميزانية المقدرة',
+      titleFreelance: 'فلنبنِ مشروعك معاً',
+      descFreelance: 'هل لديك فكرة لمنتج SaaS MVP أو تطبيق ويب أو نظام ذكاء اصطناعي؟ املأ النموذج للحصول على تقدير سعر سريع للبدء!',
+      messageFreelance: 'وصف متطلبات المشروع',
+      messageFreelancePlaceholder: 'أخبرني عن المنتج الذي تريد بناءه...',
+      sendFreelance: 'إرسال الطلب',
       error: 'فشل إرسال الرسالة. يرجى المحاولة مرة أخرى.'
     },
     

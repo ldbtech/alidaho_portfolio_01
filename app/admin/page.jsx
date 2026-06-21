@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaSave, FaTrash, FaPlus, FaEdit, FaLink, FaSignOutAlt, FaProjectDiagram, FaUser, FaInfoCircle, FaLightbulb, FaFilePdf, FaEye, FaArrowLeft } from "react-icons/fa";
+import { FaSave, FaTrash, FaPlus, FaEdit, FaLink, FaSignOutAlt, FaProjectDiagram, FaUser, FaInfoCircle, FaLightbulb, FaFilePdf, FaEye, FaArrowLeft, FaRocket } from "react-icons/fa";
 import { getDatabase, ref, set, remove, get } from "firebase/database";
 import database from "../services/firebase";
 import { fetchData, saveProject, saveAbout, getCurrentUser, logout, initAuthStateListener, getVisitorCount, getProjectCount } from "../services/firebase";
@@ -12,6 +12,7 @@ import AboutManager from '../components/admin/AboutManager';
 import ProfileManager from '../components/admin/ProfileManager';
 import ThoughtManager from '../components/admin/ThoughtManager';
 import ResumeManager from '../components/admin/ResumeManager';
+import FreelanceManager from '../components/admin/FreelanceManager';
 import Link from 'next/link';
 import LoadingState from '../components/LoadingState';
 
@@ -181,6 +182,7 @@ const AdminPage = () => {
   const tabs = [
     { id: 'projects', label: 'Projects', icon: FaProjectDiagram },
     { id: 'thoughts', label: 'My Thoughts', icon: FaLightbulb },
+    { id: 'freelance', label: 'Freelance Studio', icon: FaRocket },
     { id: 'profile', label: 'Profile', icon: FaUser },
     { id: 'resume', label: 'Resume', icon: FaFilePdf },
     { id: 'about', label: 'About', icon: FaInfoCircle },
@@ -192,6 +194,8 @@ const AdminPage = () => {
         return <ProjectManager />;
       case 'thoughts':
         return <ThoughtManager />;
+      case 'freelance':
+        return <FreelanceManager />;
       case 'profile':
         return <ProfileManager />;
       case 'resume':

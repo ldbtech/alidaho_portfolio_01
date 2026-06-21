@@ -149,6 +149,7 @@ const ThoughtForm = ({ thought, onSave, onCancel }) => {
     imageUrl: thought.imageUrl || '',
     tags: thought.tags || [],
     summary: thought.summary || '',
+    targetMode: thought.targetMode || 'both',
     date: thought.date ? new Date(thought.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
   });
   const [showPreview, setShowPreview] = useState(false);
@@ -406,7 +407,7 @@ const ThoughtForm = ({ thought, onSave, onCancel }) => {
         </div>
 
         {/* Meta Information */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
             <select
@@ -418,6 +419,19 @@ const ThoughtForm = ({ thought, onSave, onCancel }) => {
               <option value="Software Development">Software Development</option>
               <option value="Technology">Technology</option>
               <option value="Career">Career</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Show in Mode (Visibility)</label>
+            <select
+              value={formData.targetMode || 'both'}
+              onChange={(e) => setFormData({ ...formData, targetMode: e.target.value })}
+              className="w-full px-4 py-3 bg-[#2A2A2A] rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
+            >
+              <option value="both">Both (Career & Freelance)</option>
+              <option value="job">Career Mode Only</option>
+              <option value="freelance">Freelance Mode Only</option>
             </select>
           </div>
 
@@ -517,12 +531,19 @@ const ThoughtCard = ({ thought, onEdit, onDelete }) => {
               {thought.title}
             </h3>
           </Link>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className="px-2 py-1 bg-blue-500 rounded-full text-xs">
               {thought.category}
             </span>
             <span className="px-2 py-1 bg-gray-700 rounded-full text-xs">
               {new Date(thought.date).toLocaleDateString()}
+            </span>
+            <span className={`px-2 py-1 rounded-full text-[10px] uppercase font-bold ${
+              thought.targetMode === 'freelance' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+              thought.targetMode === 'job' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+              'bg-gray-500/20 text-gray-400 border border-separator/35'
+            }`}>
+              Mode: {thought.targetMode || 'both'}
             </span>
           </div>
         </div>

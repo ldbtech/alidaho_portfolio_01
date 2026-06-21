@@ -3,14 +3,26 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { FaCode, FaServer, FaDatabase, FaTrophy, FaGraduationCap, FaBriefcase, FaGlobe, FaFootballBall } from "react-icons/fa";
-import { fetchData, getVisitorCount } from "../services/firebase";
+import { FaCode, FaServer, FaDatabase, FaTrophy, FaGraduationCap, FaBriefcase, FaGlobe, FaFootballBall, FaRocket, FaBrain, FaMobileAlt } from "react-icons/fa";
+import { fetchData, getVisitorCount, fetchFreelanceConfig } from "../services/firebase";
 import { useLanguage } from "../contexts/LanguageContext";
+import { usePortfolioMode } from "../contexts/PortfolioModeContext";
 import LoadingState from "./LoadingState";
+
+const iconMap = {
+  rocket: FaRocket,
+  brain: FaBrain,
+  code: FaCode,
+  database: FaDatabase,
+  mobile: FaMobileAlt,
+  server: FaServer
+};
 
 const AboutSection = () => {
   const { t } = useLanguage();
+  const { isFreelance } = usePortfolioMode();
   const [content, setContent] = useState(null);
+  const [freelanceConfig, setFreelanceConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageError, setImageError] = useState(false);
@@ -29,11 +41,13 @@ const AboutSection = () => {
   useEffect(() => {
     const loadContent = async () => {
       try {
-        const [data, visits] = await Promise.all([
+        const [data, visits, freelanceData] = await Promise.all([
           fetchData('about'),
-          getVisitorCount()
+          getVisitorCount(),
+          fetchFreelanceConfig()
         ]);
         setVisitorCount(visits);
+        setFreelanceConfig(freelanceData);
 
         if (data) {
           setContent({
@@ -145,17 +159,22 @@ const AboutSection = () => {
           className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary"
         >
           {(() => {
-            const title = t('about.title', 'About Me');
+            const title = isFreelance 
+              ? t('about.titleFreelance', 'Freelance Studio')
+              : t('about.title', 'About Me');
             const titleParts = typeof title === 'string' ? title.split(' ') : ['About', 'Me'];
             return (
               <>
-                {titleParts[0]} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">{titleParts[1] || 'Me'}</span>
+                {titleParts[0]} <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isFreelance ? 'from-emerald-400 to-teal-500' : 'from-blue-500 to-indigo-500'}`}>{titleParts[1] || 'Me'}</span>
               </>
             );
           })()}
         </motion.h2>
         <p className="text-secondary text-sm sm:text-base max-w-xl mx-auto">
-          A glimpse into my background, core expertise, and technical journey.
+          {isFreelance 
+            ? "Explore how I build, design, and deploy client-focused solutions and custom code packages."
+            : "A glimpse into my background, core expertise, and technical journey."
+          }
         </p>
       </div>
 
@@ -168,7 +187,9 @@ const AboutSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="bg-glass rounded-3xl p-6 md:p-8 md:col-span-2 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] hover:border-blue-500/20 transition-all duration-300 group"
+          className={`bg-glass rounded-3xl p-6 md:p-8 md:col-span-2 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] transition-all duration-300 group ${
+            isFreelance ? 'hover:border-emerald-500/20' : 'hover:border-blue-500/20'
+          }`}
         >
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 shadow-lg border border-zinc-200 dark:border-zinc-800">
@@ -182,35 +203,52 @@ const AboutSection = () => {
                   onError={handleImageError}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-theme flex items-center justify-center text-white text-2xl font-bold">
+                <div className={`w-full h-full flex items-center justify-center text-white text-2xl font-bold ${isFreelance ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-theme'}`}>
                   AD
                 </div>
               )}
             </div>
             <div className="space-y-3 text-center sm:text-left">
-              <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-semibold uppercase tracking-wider">
-                {t('about.subtitle', 'Full Stack & AI Engineer')}
+              <span className={`px-3 py-1 border rounded-full text-xs font-semibold uppercase tracking-wider ${
+                isFreelance 
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                  : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+              }`}>
+                {isFreelance ? t('about.subtitleFreelance', 'Full-Stack Studio') : t('about.subtitle', 'Full Stack & AI Engineer')}
               </span>
               <h3 className="text-xl sm:text-2xl font-bold text-primary">Ali Daho Bachir</h3>
               <p className="text-secondary text-sm sm:text-base leading-relaxed">
-                {content.bio || "I'm a passionate Software Engineer focused on building intelligent web and mobile solutions."}
+                {isFreelance && freelanceConfig?.bio 
+                  ? freelanceConfig.bio 
+                  : (content.bio || "I'm a passionate Software Engineer focused on building intelligent web and mobile solutions.")
+                }
               </p>
             </div>
           </div>
           
-          {/* Stats Bar */}
+          {/* Stats Bar (Swaps dynamically under freelance mode) */}
           <div className="grid grid-cols-3 gap-4 pt-6 mt-6 border-t border-zinc-200/60 dark:border-zinc-800/40 text-center">
             <div>
-              <span className="block text-2xl font-extrabold text-blue-500">
-                {content.experience.length}+
+              <span className={`block text-2xl font-extrabold ${isFreelance ? 'text-emerald-500' : 'text-blue-500'}`}>
+                {isFreelance 
+                  ? (freelanceConfig?.hourlyRate ? `$${freelanceConfig.hourlyRate}/hr` : '$50/hr')
+                  : `${content.experience.length}+`
+                }
               </span>
-              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">{t('about.rolesHeld', 'Roles Held')}</span>
+              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">
+                {isFreelance ? t('about.hourlyRate', 'Hourly Rate') : t('about.rolesHeld', 'Roles Held')}
+              </span>
             </div>
             <div>
-              <span className="block text-2xl font-extrabold text-emerald-500">
-                9+
+              <span className={`block text-2xl font-extrabold ${isFreelance ? 'text-teal-400' : 'text-emerald-500'}`}>
+                {isFreelance 
+                  ? (freelanceConfig?.projectStartingPrice ? `$${freelanceConfig.projectStartingPrice}+` : '$1500+')
+                  : '9+'
+                }
               </span>
-              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">{t('about.activeProjects', 'Active Projects')}</span>
+              <span className="text-[10px] text-tertiary uppercase tracking-wider font-semibold">
+                {isFreelance ? t('about.startingPrice', 'Starting Project') : t('about.activeProjects', 'Active Projects')}
+              </span>
             </div>
             <div>
               <span className="block text-2xl font-extrabold text-indigo-500">
@@ -227,11 +265,13 @@ const AboutSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="bg-glass rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(139,92,246,0.06)] hover:border-purple-500/20 transition-all duration-300 group"
+          className={`bg-glass rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(139,92,246,0.06)] transition-all duration-300 group ${
+            isFreelance ? 'hover:border-emerald-500/20' : 'hover:border-purple-500/20'
+          }`}
         >
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+              <div className={`p-2.5 rounded-xl ${isFreelance ? 'bg-emerald-500/10 text-emerald-400' : 'bg-purple-500/10 text-purple-400'}`}>
                 <FaCode className="text-lg" />
               </div>
               <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.techStack', 'Tech Stack')}</h3>
@@ -242,7 +282,11 @@ const AboutSection = () => {
               {content.programmingLanguages.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {content.programmingLanguages.map((lang, i) => (
-                    <span key={i} className="px-2.5 py-1 bg-blue-500/15 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-semibold">
+                    <span key={i} className={`px-2.5 py-1 border rounded-lg text-xs font-semibold ${
+                      isFreelance 
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' 
+                        : 'bg-blue-500/15 text-blue-400 border-blue-500/20'
+                    }`}>
                       {lang.language}
                     </span>
                   ))}
@@ -276,191 +320,269 @@ const AboutSection = () => {
           </p>
         </motion.div>
 
-        {/* Box 3: Experience & Education Journey (col-span-2) */}
+        {/* Box 3: Experience & Education Journey OR Freelance Services (col-span-2) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-glass rounded-3xl p-6 md:p-8 md:col-span-2 border border-zinc-200 dark:border-zinc-800/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] hover:border-blue-500/20 transition-all duration-300 group"
+          className={`bg-glass rounded-3xl p-6 md:p-8 md:col-span-2 border border-zinc-200 dark:border-zinc-800/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.06)] transition-all duration-300 group ${
+            isFreelance ? 'hover:border-emerald-500/20' : 'hover:border-blue-500/20'
+          }`}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Experience Column */}
+          {isFreelance ? (
+            /* Freelance Services Offered Layout */
             <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
-                  <FaBriefcase className="text-lg" />
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <FaRocket className="text-lg" />
                 </div>
-                <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.workExperience', 'Work Experience')}</h3>
+                <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.freelanceServices', 'Services & Packages')}</h3>
               </div>
 
-              {sortedExperiences.length > 0 ? (
-                <div className="relative pl-6 sm:pl-8 border-l border-zinc-200 dark:border-zinc-800/60 space-y-6">
-                  {sortedExperiences.map((exp, index) => {
-                    const isExpanded = !!expandedExp[index];
-                    return (
-                      <div 
-                        key={index} 
-                        className="relative group/item cursor-pointer"
-                        onClick={() => toggleExp(index)}
-                      >
-                        {/* Timeline Dot */}
-                        <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 w-3.5 h-3.5 rounded-full bg-blue-500 border border-white dark:border-zinc-950 shadow-md group-hover/item:scale-110 transition-transform" />
-                        
-                        <div className="space-y-1 select-none">
-                          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                            <h4 className="font-bold text-primary text-sm sm:text-base group-hover/item:text-blue-400 transition-colors flex items-center gap-1.5">
-                              {exp.title}
-                              <span className="text-[10px] text-zinc-500 font-normal transition-transform duration-300">
-                                {isExpanded ? "▲" : "▼"}
-                              </span>
-                            </h4>
-                            <span className="text-[11px] text-tertiary font-semibold">{exp.period}</span>
+              <div className="grid grid-cols-1 gap-4">
+                {freelanceConfig?.services?.map((service, index) => {
+                  const Icon = iconMap[service.icon] || FaCode;
+                  return (
+                    <div key={service.id || index} className="p-4 bg-zinc-100/50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/60 hover:border-emerald-500/20 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                      <div className="space-y-2 max-w-xl">
+                        <div className="flex items-center flex-wrap gap-2">
+                          <div className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400">
+                            <Icon className="text-sm" />
                           </div>
-                          <span className="text-xs font-semibold text-blue-400 block">{exp.company}</span>
-                          
-                          <motion.div
-                            initial={false}
-                            animate={{ 
-                              height: isExpanded ? "auto" : 0, 
-                              opacity: isExpanded ? 1 : 0,
-                              marginTop: isExpanded ? "0.5rem" : 0
-                            }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="overflow-hidden text-xs sm:text-sm"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {renderDescription(exp.description)}
-                          </motion.div>
+                          <h4 className="font-bold text-primary text-sm sm:text-base leading-tight">{service.title}</h4>
+                          <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/15 uppercase tracking-wide">
+                            {service.duration}
+                          </span>
+                        </div>
+                        <p className="text-secondary text-xs leading-relaxed">{service.description}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {service.features?.map((feat, i) => (
+                            <span key={i} className="text-[9px] text-tertiary px-2 py-0.5 bg-zinc-200/40 dark:bg-zinc-800/30 rounded border border-separator/10">
+                              {feat}
+                            </span>
+                          ))}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-xs text-tertiary">{t('about.noExperience', 'No experience configured.')}</p>
-              )}
+                      <div className="shrink-0 text-left sm:text-right border-t sm:border-t-0 border-separator/10 pt-2 sm:pt-0">
+                        <span className="block text-[9px] text-tertiary font-bold uppercase tracking-wider">Starts at</span>
+                        <span className="text-xl font-black text-emerald-400">${service.price}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-
-            {/* Education Column */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
-                  <FaGraduationCap className="text-lg" />
+          ) : (
+            /* Career Experience & Education Timeline Layout */
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Experience Column */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
+                    <FaBriefcase className="text-lg" />
+                  </div>
+                  <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.workExperience', 'Work Experience')}</h3>
                 </div>
-                <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.educationLabel', 'Education')}</h3>
+
+                {sortedExperiences.length > 0 ? (
+                  <div className="relative pl-6 sm:pl-8 border-l border-zinc-200 dark:border-zinc-800/60 space-y-6">
+                    {sortedExperiences.map((exp, index) => {
+                      const isExpanded = !!expandedExp[index];
+                      return (
+                        <div 
+                          key={index} 
+                          className="relative group/item cursor-pointer"
+                          onClick={() => toggleExp(index)}
+                        >
+                          {/* Timeline Dot */}
+                          <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 w-3.5 h-3.5 rounded-full bg-blue-500 border border-white dark:border-zinc-950 shadow-md group-hover/item:scale-110 transition-transform" />
+                          
+                          <div className="space-y-1 select-none">
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                              <h4 className="font-bold text-primary text-sm sm:text-base group-hover/item:text-blue-400 transition-colors flex items-center gap-1.5">
+                                {exp.title}
+                                <span className="text-[10px] text-zinc-500 font-normal transition-transform duration-300">
+                                  {isExpanded ? "▲" : "▼"}
+                                </span>
+                              </h4>
+                              <span className="text-[11px] text-tertiary font-semibold">{exp.period}</span>
+                            </div>
+                            <span className="text-xs font-semibold text-blue-400 block">{exp.company}</span>
+                            
+                            <motion.div
+                              initial={false}
+                              animate={{ 
+                                height: isExpanded ? "auto" : 0, 
+                                opacity: isExpanded ? 1 : 0,
+                                marginTop: isExpanded ? "0.5rem" : 0
+                              }}
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                              className="overflow-hidden text-xs sm:text-sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {renderDescription(exp.description)}
+                            </motion.div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-tertiary">{t('about.noExperience', 'No experience configured.')}</p>
+                )}
               </div>
 
-              {sortedEducation.length > 0 ? (
-                <div className="relative pl-6 sm:pl-8 border-l border-zinc-200 dark:border-zinc-800/60 space-y-6">
-                  {sortedEducation.map((edu, index) => {
-                    const isExpanded = !!expandedEdu[index];
-                    return (
-                      <div 
-                        key={index} 
-                        className="relative group/item cursor-pointer"
-                        onClick={() => toggleEdu(index)}
-                      >
-                        {/* Timeline Dot */}
-                        <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 w-3.5 h-3.5 rounded-full bg-indigo-500 border border-white dark:border-zinc-950 shadow-md group-hover/item:scale-110 transition-transform" />
-                        
-                        <div className="space-y-1 select-none">
-                          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                            <h4 className="font-bold text-primary text-sm sm:text-base group-hover/item:text-indigo-400 transition-colors flex items-center gap-1.5">
-                              {edu.degree}
-                              <span className="text-[10px] text-zinc-500 font-normal transition-transform duration-300">
-                                {isExpanded ? "▲" : "▼"}
-                              </span>
-                            </h4>
-                            <span className="text-[11px] text-tertiary font-semibold">{edu.period}</span>
-                          </div>
-                          <span className="text-xs font-semibold text-indigo-400 block">{edu.school}</span>
-                          
-                          <motion.div
-                            initial={false}
-                            animate={{ 
-                              height: isExpanded ? "auto" : 0, 
-                              opacity: isExpanded ? 1 : 0,
-                              marginTop: isExpanded ? "0.5rem" : 0
-                            }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="overflow-hidden text-xs sm:text-sm"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {renderDescription(edu.description)}
-                          </motion.div>
-                        </div>
-                      </div>
-                    );
-                  })}
+              {/* Education Column */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
+                    <FaGraduationCap className="text-lg" />
+                  </div>
+                  <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.educationLabel', 'Education')}</h3>
                 </div>
-              ) : (
-                <p className="text-xs text-tertiary">{t('about.noEducation', 'No education configured.')}</p>
-              )}
+
+                {sortedEducation.length > 0 ? (
+                  <div className="relative pl-6 sm:pl-8 border-l border-zinc-200 dark:border-zinc-800/60 space-y-6">
+                    {sortedEducation.map((edu, index) => {
+                      const isExpanded = !!expandedEdu[index];
+                      return (
+                        <div 
+                          key={index} 
+                          className="relative group/item cursor-pointer"
+                          onClick={() => toggleEdu(index)}
+                        >
+                          {/* Timeline Dot */}
+                          <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 w-3.5 h-3.5 rounded-full bg-indigo-500 border border-white dark:border-zinc-950 shadow-md group-hover/item:scale-110 transition-transform" />
+                          
+                          <div className="space-y-1 select-none">
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                              <h4 className="font-bold text-primary text-sm sm:text-base group-hover/item:text-indigo-400 transition-colors flex items-center gap-1.5">
+                                {edu.degree}
+                                <span className="text-[10px] text-zinc-500 font-normal transition-transform duration-300">
+                                  {isExpanded ? "▲" : "▼"}
+                                </span>
+                              </h4>
+                              <span className="text-[11px] text-tertiary font-semibold">{edu.period}</span>
+                            </div>
+                            <span className="text-xs font-semibold text-indigo-400 block">{edu.school}</span>
+                            
+                            <motion.div
+                              initial={false}
+                              animate={{ 
+                                height: isExpanded ? "auto" : 0, 
+                                opacity: isExpanded ? 1 : 0,
+                                marginTop: isExpanded ? "0.5rem" : 0
+                              }}
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                              className="overflow-hidden text-xs sm:text-sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {renderDescription(edu.description)}
+                            </motion.div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-tertiary">{t('about.noEducation', 'No education configured.')}</p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </motion.div>
 
-        {/* Box 4: Spoken Languages & Striker Badge (col-span-1) */}
+        {/* Box 4: Spoken Languages & Striker Badge OR How I Work (col-span-1) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="bg-glass rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(16,185,129,0.06)] hover:border-emerald-500/20 transition-all duration-300 group"
+          className={`bg-glass rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:shadow-[0_0_20px_rgba(16,185,129,0.06)] transition-all duration-300 group ${
+            isFreelance ? 'hover:border-emerald-500/20' : 'hover:border-emerald-500/20'
+          }`}
         >
-          <div className="space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-                <FaGlobe className="text-lg" />
+          {isFreelance ? (
+            /* Freelance How I Work Process Flow Layout */
+            <div className="space-y-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <FaBriefcase className="text-lg" />
+                </div>
+                <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.howIWork', 'How I Work')}</h3>
               </div>
-              <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.languagesLabel', 'Languages & Fun')}</h3>
+              
+              <div className="relative pl-4 border-l-2 border-emerald-500/20 space-y-5 text-xs">
+                {(freelanceConfig?.process || []).map((step, index) => (
+                  <div key={step.id || index} className="relative">
+                    <div className="absolute -left-[22px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm" />
+                    <span className="block font-bold text-primary">{step.stepNumber}. {step.title}</span>
+                    <span className="text-secondary text-[11px] leading-snug block mt-0.5">{step.description}</span>
+                  </div>
+                ))}
+                {(!freelanceConfig?.process || freelanceConfig.process.length === 0) && (
+                  <p className="text-tertiary text-xs italic">No process steps configured yet.</p>
+                )}
+              </div>
             </div>
-            
-            {/* Languages lists */}
-            <div className="space-y-3">
-              {content.spokenLanguages && content.spokenLanguages.length > 0 ? (
-                content.spokenLanguages.map((lang, index) => {
-                  const flagMap = {
-                    english: "🇬🇧",
-                    french: "🇫🇷",
-                    arabic: "🇩🇿",
-                    russian: "🇷🇺",
-                    spanish: "🇪🇸",
-                    german: "🇩🇪",
-                    italian: "🇮🇹",
-                    chinese: "🇨🇳",
-                    japanese: "🇯🇵",
-                    korean: "🇰🇷",
-                    portuguese: "🇵🇹",
-                    hindi: "🇮🇳"
-                  };
-                  const normalizedLang = lang.language?.toLowerCase().trim() || "";
-                  const flag = flagMap[normalizedLang] || "🗣️";
-                  
-                  return (
-                    <div key={index} className="flex justify-between items-center text-xs">
-                      <span className="text-secondary font-medium">{flag} {lang.language}</span>
-                      <span className="text-tertiary">{lang.level}</span>
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="text-xs text-tertiary">{t('about.noLanguages', 'No languages configured.')}</p>
-              )}
-            </div>
-          </div>
+          ) : (
+            /* Career Languages & Striker Fun Badge Layout */
+            <>
+              <div className="space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                    <FaGlobe className="text-lg" />
+                  </div>
+                  <h3 className="font-bold text-primary text-base sm:text-lg">{t('about.languagesLabel', 'Languages & Fun')}</h3>
+                </div>
+                
+                {/* Languages lists */}
+                <div className="space-y-3">
+                  {content.spokenLanguages && content.spokenLanguages.length > 0 ? (
+                    content.spokenLanguages.map((lang, index) => {
+                      const flagMap = {
+                        english: "🇬🇧",
+                        french: "🇫🇷",
+                        arabic: "🇩🇿",
+                        russian: "🇷🇺",
+                        spanish: "🇪🇸",
+                        german: "🇩🇪",
+                        italian: "🇮🇹",
+                        chinese: "🇨🇳",
+                        japanese: "🇯🇵",
+                        korean: "🇰🇷",
+                        portuguese: "🇵🇹",
+                        hindi: "🇮🇳"
+                      };
+                      const normalizedLang = lang.language?.toLowerCase().trim() || "";
+                      const flag = flagMap[normalizedLang] || "🗣️";
+                      
+                      return (
+                        <div key={index} className="flex justify-between items-center text-xs">
+                          <span className="text-secondary font-medium">{flag} {lang.language}</span>
+                          <span className="text-tertiary">{lang.level}</span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-tertiary">{t('about.noLanguages', 'No languages configured.')}</p>
+                  )}
+                </div>
+              </div>
 
-          {/* Soccer badge card */}
-          <div className="mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800/40 flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-              <FaFootballBall className="text-amber-500 text-lg animate-spin" style={{ animationDuration: '8s' }} />
-            </div>
-            <div>
-              <span className="block text-xs font-extrabold text-primary">{t('about.striker', 'Best Striker ⚽️')}</span>
-              <span className="text-[10px] text-tertiary leading-none block">{t('about.strikerDesc', 'Earned on the local pitch')}</span>
-            </div>
-          </div>
+              {/* Soccer badge card */}
+              <div className="mt-6 pt-4 border-t border-zinc-200/60 dark:border-zinc-800/40 flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                  <FaFootballBall className="text-amber-500 text-lg animate-spin" style={{ animationDuration: '8s' }} />
+                </div>
+                <div>
+                  <span className="block text-xs font-extrabold text-primary">{t('about.striker', 'Best Striker ⚽️')}</span>
+                  <span className="text-[10px] text-tertiary leading-none block">{t('about.strikerDesc', 'Earned on the local pitch')}</span>
+                </div>
+              </div>
+            </>
+          )}
         </motion.div>
 
         {/* Box 5: Education & Highlights (col-span-3) */}
@@ -470,7 +592,9 @@ const AboutSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="bg-glass rounded-3xl p-6 md:p-8 md:col-span-3 border border-zinc-200 dark:border-zinc-800/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)] hover:border-amber-500/20 transition-all duration-300 group"
+            className={`bg-glass rounded-3xl p-6 md:p-8 md:col-span-3 border border-zinc-200 dark:border-zinc-800/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)] transition-all duration-300 group ${
+              isFreelance ? 'hover:border-emerald-500/20' : 'hover:border-amber-500/20'
+            }`}
           >
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">

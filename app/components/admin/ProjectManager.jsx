@@ -49,6 +49,7 @@ const ProjectManager = () => {
             imgUrl: formData.get('imgUrl'),
             gitUrl: formData.get('gitUrl'),
             previewUrl: formData.get('previewUrl'),
+            targetMode: formData.get('targetMode') || 'both',
             tags: formData.get('tags')?.split(',').map(tag => tag.trim()) || []
         };
 
@@ -176,16 +177,32 @@ const ProjectManager = () => {
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                        Tags (comma-separated)
-                    </label>
-                    <input
-                        type="text"
-                        name="tags"
-                        defaultValue={editingProject?.tags?.join(', ')}
-                        className="w-full bg-[#2A2A2A] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-2">
+                            Tags (comma-separated)
+                        </label>
+                        <input
+                            type="text"
+                            name="tags"
+                            defaultValue={editingProject?.tags?.join(', ')}
+                            className="w-full bg-[#2A2A2A] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-200 mb-2">
+                            Show in Mode (Visibility)
+                        </label>
+                        <select
+                            name="targetMode"
+                            defaultValue={editingProject?.targetMode || 'both'}
+                            className="w-full bg-[#2A2A2A] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="both">Both (Career & Freelance)</option>
+                            <option value="job">Career Mode Only</option>
+                            <option value="freelance">Freelance Mode Only</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div className="flex gap-4">
@@ -227,6 +244,15 @@ const ProjectManager = () => {
                                     {tag}
                                 </span>
                             ))}
+                        </div>
+                        <div className="mb-4">
+                            <span className={`px-2.5 py-1 text-[10px] rounded-lg font-bold uppercase ${
+                                project.targetMode === 'freelance' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                                project.targetMode === 'job' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                                'bg-gray-500/20 text-gray-400 border border-separator/35'
+                            }`}>
+                                Mode: {project.targetMode || 'both'}
+                            </span>
                         </div>
                         <div className="flex gap-2">
                             <button

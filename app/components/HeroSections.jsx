@@ -3,16 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { TypeAnimation } from "react-type-animation";
 import { motion } from "framer-motion";
-import { FaGithub, FaLinkedin } from "react-icons/fa";
-import { fetchProfile, fetchData } from '../services/firebase';
+import { FaGithub, FaLinkedin, FaRocket, FaCode, FaBriefcase } from "react-icons/fa";
+import { fetchProfile, fetchData, fetchFreelanceConfig } from '../services/firebase';
+import { usePortfolioMode } from '../contexts/PortfolioModeContext';
 import ResumePreview from './ResumePreview';
 import LoadingState from './LoadingState';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const HeroSections = () => {
     const { t } = useLanguage();
+    const { isFreelance } = usePortfolioMode();
     const [profile, setProfile] = useState(null);
     const [about, setAbout] = useState(null);
+    const [freelance, setFreelance] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [imageError, setImageError] = useState(false);
@@ -21,12 +24,14 @@ const HeroSections = () => {
         const loadData = async () => {
             try {
                 console.log('HeroSections: Starting to load data...');
-                const [profileData, aboutData] = await Promise.all([
+                const [profileData, aboutData, freelanceData] = await Promise.all([
                     fetchProfile(),
-                    fetchData('about')
+                    fetchData('about'),
+                    fetchFreelanceConfig()
                 ]);
                 setProfile(profileData);
                 setAbout(aboutData);
+                setFreelance(freelanceData);
             } catch (error) {
                 console.error('HeroSections: Error loading data:', error);
                 setError(error.message);
@@ -69,24 +74,36 @@ const HeroSections = () => {
     }
 
     return (
-        <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 pb-8 relative overflow-hidden">
+        <section id="hero" className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 pb-8 relative overflow-hidden">
             {/* Background — slow-drifting gradient blobs */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
                 <motion.div
                     className="absolute -top-40 -left-40 w-[640px] h-[640px] rounded-full blur-3xl"
-                    style={{ background: 'radial-gradient(circle, rgba(0,122,255,0.12) 0%, transparent 70%)' }}
+                    style={{ 
+                        background: isFreelance 
+                            ? 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)' 
+                            : 'radial-gradient(circle, rgba(0,122,255,0.12) 0%, transparent 70%)' 
+                    }}
                     animate={{ x: [0, 100, 0], y: [0, 50, 0] }}
                     transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
                 />
                 <motion.div
                     className="absolute -bottom-40 -right-20 w-[560px] h-[560px] rounded-full blur-3xl"
-                    style={{ background: 'radial-gradient(circle, rgba(88,86,214,0.12) 0%, transparent 70%)' }}
+                    style={{ 
+                        background: isFreelance 
+                            ? 'radial-gradient(circle, rgba(20,184,166,0.1) 0%, transparent 70%)' 
+                            : 'radial-gradient(circle, rgba(88,86,214,0.12) 0%, transparent 70%)' 
+                    }}
                     animate={{ x: [0, -80, 0], y: [0, -60, 0] }}
                     transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
                 />
                 <motion.div
                     className="absolute top-1/2 left-1/3 w-[420px] h-[420px] rounded-full blur-3xl"
-                    style={{ background: 'radial-gradient(circle, rgba(52,199,89,0.06) 0%, transparent 70%)' }}
+                    style={{ 
+                        background: isFreelance 
+                            ? 'radial-gradient(circle, rgba(52,211,153,0.06) 0%, transparent 70%)' 
+                            : 'radial-gradient(circle, rgba(52,199,89,0.06) 0%, transparent 70%)' 
+                    }}
                     animate={{ scale: [1, 1.3, 1] }}
                     transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
                 />
@@ -105,7 +122,11 @@ const HeroSections = () => {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
-                            className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-blue-500 via-purple-500 to-emerald-500 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_30px_rgba(59,130,246,0.35)] transition-all duration-500 group cursor-pointer"
+                            className={`relative w-32 h-32 sm:w-36 sm:h-36 rounded-full p-1 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_30px_rgba(59,130,246,0.35)] transition-all duration-500 group cursor-pointer ${
+                                isFreelance 
+                                    ? 'bg-gradient-to-tr from-emerald-400 via-teal-500 to-blue-500' 
+                                    : 'bg-gradient-to-tr from-blue-500 via-purple-500 to-emerald-500'
+                            }`}
                         >
                             <div className="w-full h-full rounded-full overflow-hidden bg-surface dark:bg-zinc-900 border-2 border-surface-secondary dark:border-zinc-950 relative">
                                 {!imageError ? (
@@ -132,9 +153,16 @@ const HeroSections = () => {
                         transition={{ duration: 0.6 }}
                         className="flex justify-center"
                     >
-                        <span className="inline-flex items-center gap-2 px-4 py-2 bg-surface-secondary/50 backdrop-blur-sm rounded-full border border-surface-secondary/30 text-sm text-secondary font-medium">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            {t('hero.status', 'Available for opportunities')}
+                        <span className={`inline-flex items-center gap-2 px-4 py-2 bg-surface-secondary/50 backdrop-blur-sm rounded-full border border-surface-secondary/30 text-sm font-medium transition-colors duration-300 ${
+                            isFreelance ? 'text-emerald-400' : 'text-secondary'
+                        }`}>
+                            <span className={`w-2 h-2 rounded-full animate-pulse ${
+                                isFreelance ? 'bg-emerald-500' : 'bg-green-500'
+                            }`}></span>
+                            {isFreelance 
+                                ? t('hero.statusFreelance', 'Accepting Freelance Projects') 
+                                : t('hero.status', 'Available for opportunities')
+                            }
                         </span>
                     </motion.div>
                 </div>
@@ -148,7 +176,11 @@ const HeroSections = () => {
                         transition={{ duration: 0.8, delay: 0.2 }}
                         className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-primary tracking-tight leading-none"
                     >
-                        <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                        <span className={`bg-clip-text text-transparent bg-gradient-to-r ${
+                            isFreelance 
+                                ? 'from-emerald-400 via-teal-400 to-emerald-400' 
+                                : 'from-primary via-accent to-primary'
+                        }`}>
                             {profile.name || "Ali Daho"}
                         </span>
                     </motion.h1>
@@ -163,11 +195,11 @@ const HeroSections = () => {
                         <h2 className="text-xl sm:text-2xl md:text-3xl text-secondary font-light">
                             <TypeAnimation
                                 sequence={[
-                                    profile.title,
+                                    isFreelance ? "Freelance Studio" : profile.title,
                                     4000,
-                                    "Software Developer",
+                                    isFreelance ? "SaaS MVP Builder" : "Software Developer",
                                     3000,
-                                    "Best Striker ⚽️",
+                                    isFreelance ? "AI Integration expert" : "Best Striker ⚽️",
                                     3000,
                                     "Polyglot",
                                     2000,
@@ -178,44 +210,97 @@ const HeroSections = () => {
                                 wrapper="span"
                                 speed={40}
                                 repeat={Infinity}
-                                className="text-accent"
+                                className={isFreelance ? "text-emerald-400" : "text-accent"}
                             />
                         </h2>
                     </motion.div>
                 </div>
+
+                {/* Freelance Biography Focus text */}
+                {isFreelance && freelance?.bio && (
+                    <motion.p
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.5 }}
+                        className="text-secondary max-w-xl text-base sm:text-lg leading-relaxed text-center"
+                    >
+                        {freelance.bio}
+                    </motion.p>
+                )}
 
                 {/* Action Buttons */}
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.6 }}
-                    className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+                    className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full"
                 >
-                    <a
-                        href={profile.socialLinks.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white rounded-full transition-all duration-300 hover:scale-[1.03] shadow-2xl hover:shadow-gray-500/25 w-48 sm:w-auto"
-                    >
-                        <FaGithub className="w-5 h-5" />
-                        <span className="font-semibold">{t('hero.github', 'View GitHub')}</span>
-                    </a>
-                    <a
-                        href={profile.socialLinks.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full transition-all duration-300 hover:scale-[1.03] shadow-2xl hover:shadow-blue-500/25 w-48 sm:w-auto"
-                    >
-                        <FaLinkedin className="w-5 h-5" />
-                        <span className="font-semibold">{t('hero.linkedin', 'Connect')}</span>
-                    </a>
-                    <div className="w-48 sm:w-auto flex justify-center">
-                        <ResumePreview 
-                            resumeUrl={profile.resumeUrl} 
-                            resumeName={profile.resumeName || "Resume"}
-                            showDownload={false}
-                        />
-                    </div>
+                    {isFreelance ? (
+                        <>
+                            <a
+                                href="#contact"
+                                className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full transition-all duration-300 hover:scale-[1.03] shadow-2xl hover:shadow-emerald-500/25 w-48 sm:w-auto font-semibold"
+                            >
+                                <FaRocket className="w-5 h-5 shrink-0" />
+                                <span>{t('hero.freelanceCTA', "Start a Project")}</span>
+                            </a>
+                            <a
+                                href="#about"
+                                className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-glass text-primary rounded-full border border-separator hover:border-emerald-500/30 transition-all duration-300 hover:scale-[1.03] w-48 sm:w-auto font-semibold"
+                            >
+                                <FaCode className="w-5 h-5 shrink-0 text-emerald-400" />
+                                <span>{t('hero.servicesCTA', "View Services")}</span>
+                            </a>
+                            <div className="flex gap-3 mt-2 sm:mt-0">
+                                <a
+                                    href={profile.socialLinks.github}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-3 bg-zinc-900 border border-separator/40 text-white rounded-full hover:bg-emerald-500 hover:text-white transition-colors duration-200"
+                                    title="GitHub"
+                                >
+                                    <FaGithub className="w-5 h-5" />
+                                </a>
+                                <a
+                                    href={profile.socialLinks.linkedin}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-3 bg-zinc-900 border border-separator/40 text-white rounded-full hover:bg-emerald-500 hover:text-white transition-colors duration-200"
+                                    title="LinkedIn"
+                                >
+                                    <FaLinkedin className="w-5 h-5" />
+                                </a>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <a
+                                href={profile.socialLinks.github}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white rounded-full transition-all duration-300 hover:scale-[1.03] shadow-2xl hover:shadow-gray-500/25 w-48 sm:w-auto"
+                            >
+                                <FaGithub className="w-5 h-5" />
+                                <span className="font-semibold">{t('hero.github', 'View GitHub')}</span>
+                            </a>
+                            <a
+                                href={profile.socialLinks.linkedin}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full transition-all duration-300 hover:scale-[1.03] shadow-2xl hover:shadow-blue-500/25 w-48 sm:w-auto"
+                            >
+                                <FaLinkedin className="w-5 h-5" />
+                                <span className="font-semibold">{t('hero.linkedin', 'Connect')}</span>
+                            </a>
+                            <div className="w-48 sm:w-auto flex justify-center">
+                                <ResumePreview 
+                                    resumeUrl={profile.resumeUrl} 
+                                    resumeName={profile.resumeName || "Resume"}
+                                    showDownload={false}
+                                />
+                            </div>
+                        </>
+                    )}
                 </motion.div>
             </div>
         </section>

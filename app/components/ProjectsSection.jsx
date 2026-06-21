@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import ProjectCard from "./ProjectCard";
 import { fetchData } from "../services/firebase";
 import LoadingState from "./LoadingState";
+import { usePortfolioMode } from "../contexts/PortfolioModeContext";
 
 const containerVariants = {
   hidden: {},
@@ -12,6 +13,7 @@ const containerVariants = {
 };
 
 const ProjectsSection = () => {
+  const { portfolioMode, isFreelance } = usePortfolioMode();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,7 +59,16 @@ const ProjectsSection = () => {
     );
   }
 
-  const [featured, ...rest] = projects;
+  // Filter projects by active portfolio mode
+  const filteredProjects = projects.filter((project) => {
+    if (portfolioMode === 'freelance') {
+      return !project.targetMode || project.targetMode === 'both' || project.targetMode === 'freelance';
+    } else {
+      return !project.targetMode || project.targetMode === 'both' || project.targetMode === 'job';
+    }
+  });
+
+  const [featured, ...rest] = filteredProjects;
 
   return (
     <section id="projects" className="py-12 sm:py-16 lg:py-20">
@@ -70,17 +81,20 @@ const ProjectsSection = () => {
       >
         <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-primary">
           My{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-500">
+          <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isFreelance ? 'from-emerald-400 to-teal-500' : 'from-blue-500 to-teal-500'}`}>
             Projects
           </span>
         </h2>
         <p className="text-secondary max-w-2xl mx-auto text-sm sm:text-base">
-          A selection of things I&apos;ve built — from AI pipelines to full-stack apps.
+          {isFreelance 
+            ? "A showcase of custom products, SaaS platforms, and client-facing MVPs I've delivered."
+            : "A selection of things I've built — from AI pipelines to full-stack apps."
+          }
         </p>
       </motion.div>
 
-      {projects.length === 0 ? (
-        <p className="text-center text-secondary py-16">No projects yet.</p>
+      {filteredProjects.length === 0 ? (
+        <p className="text-center text-secondary py-16">No projects configured for this mode yet.</p>
       ) : (
         <motion.div
           variants={containerVariants}
