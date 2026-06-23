@@ -10,12 +10,15 @@ export async function POST(request) {
       return NextResponse.json({ error: "Name, email, and message are required" }, { status: 400 });
     }
 
-    const gmailUser = process.env.GMAIL_USER;
-    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+    const gmailUser = process.env.GMAIL_USER || process.env.NEXT_PUBLIC_GMAIL_USER;
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD || process.env.NEXT_PUBLIC_GMAIL_APP_PASSWORD;
 
     if (!gmailUser || !gmailAppPassword) {
-      console.error("Missing Gmail credentials in environment variables.");
-      return NextResponse.json({ error: "Email service is temporarily misconfigured" }, { status: 500 });
+      const errorMsg = `Email service is misconfigured. Missing environment variables: ${
+        !gmailUser ? "GMAIL_USER / NEXT_PUBLIC_GMAIL_USER " : ""
+      }${!gmailAppPassword ? "GMAIL_APP_PASSWORD / NEXT_PUBLIC_GMAIL_APP_PASSWORD" : ""}. Please check Vercel settings and trigger a redeploy.`;
+      console.error(errorMsg);
+      return NextResponse.json({ error: errorMsg }, { status: 500 });
     }
 
     // Configure the Gmail SMTP transporter
@@ -211,6 +214,6 @@ export async function POST(request) {
 
   } catch (error) {
     console.error("Nodemailer service error:", error);
-    return NextResponse.json({ error: "Failed to send email message" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to send email message" }, { status: 500 });
   }
 }
